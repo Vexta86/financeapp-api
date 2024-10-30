@@ -1,6 +1,5 @@
 package com.api.financeapp.controllers;
 
-import com.api.financeapp.dtos.SingleTransactionDTO;
 import com.api.financeapp.entities.*;
 import com.api.financeapp.services.AuthService;
 import com.api.financeapp.services.CategoryService;
@@ -11,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -25,27 +25,65 @@ public class TransactionController {
 
     @GetMapping
     public ResponseEntity<Object> getAllTransactions(HttpServletRequest request) {
-
-        User currentUser = authService.currentUser(request);
-        if (currentUser != null){
+        try {
+            User currentUser = authService.currentUser(request);
             List<Transaction> transactions = transactionService.getAllTransactions(currentUser);
             return new ResponseEntity<>(transactions, HttpStatus.OK);
-
-        } else {
-            return ResponseEntity.badRequest().body("User not found");
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Transactions not found: " + e.getMessage());
         }
+
+
     }
 
     @GetMapping("/single")
     public ResponseEntity<Object> getSingleTransactions(HttpServletRequest request){
-        User currentUser = authService.currentUser(request);
-        if (currentUser == null){
-            return ResponseEntity.badRequest().body("User not found");
+        try{
+            User currentUser = authService.currentUser(request);
+            List<SingleTransaction> transactions = transactionService.getAllSingleTransactions(currentUser);
+            return ResponseEntity.status(HttpStatus.OK).body(transactionService.convertSingleToDTOS(transactions));
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Transactions not found: " + e.getMessage());
         }
+    }
 
-        List<SingleTransaction> transactions = transactionService.getAllSingleTransactions(currentUser);
+    @GetMapping("/recurring")
+    public ResponseEntity<Object> getRecurrentTransaction(HttpServletRequest request){
+        try {
+            User currentUser = authService.currentUser(request);
+            List<RecurringTransaction> transactions = transactionService.getAllRecurringTransactions(currentUser);
+            return ResponseEntity.status(HttpStatus.OK).body(transactionService.convertRecurringToDTOS(transactions));
+        }
+        catch (Exception e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Transactions not found: " + e.getMessage());
 
-        return new ResponseEntity<>(transactionService.convertSinglesToDTOS(transactions), HttpStatus.OK);
+        }
+    }
+
+    @DeleteMapping("/{transactionId}")
+    public ResponseEntity<Object> deleteTransaction(@PathVariable Long transactionId, HttpServletRequest request){
+        try {
+            User currentUser = authService.currentUser(request);
+            transactionService.deleteTransaction(transactionId, currentUser);
+            return ResponseEntity.status(HttpStatus.OK).body("Transaction deleted");
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Transaction could not be deleted: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/{categoryId}/recurring")
+    public ResponseEntity<Object> newRecurringTransaction(
+            @PathVariable Long categoryId,
+            @RequestBody RecurringTransaction transaction,
+            HttpServletRequest request
+    ) {
+        try {
+            User currentUser = authService.currentUser(request);
+            Transaction createdTransaction = transactionService.createTransaction(categoryId, transaction, currentUser);
+            return ResponseEntity.status(HttpStatus.OK).body(transactionService.convertToDto(createdTransaction));
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Transaction could not be created: " + e.getMessage());
+        }
     }
 
     @PostMapping("/{categoryId}/single")
@@ -53,44 +91,13 @@ public class TransactionController {
             @PathVariable Long categoryId,
             @RequestBody SingleTransaction transaction,
             HttpServletRequest request) {
-
-
-        User currentUser = authService.currentUser(request);
-        if (currentUser == null) {
-            return ResponseEntity.badRequest().body("User not found");
+        
+        try {
+            User currentUser = authService.currentUser(request);
+            Transaction createdTransaction = transactionService.createTransaction(categoryId, transaction, currentUser);
+            return ResponseEntity.ok(transactionService.convertToDto(createdTransaction));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Transaction could not be created: " + e.getMessage());
         }
-
-
-        Category selectedCategory = categoryService.getByIdAndUser(categoryId, currentUser);
-        if (selectedCategory == null){
-            return ResponseEntity.badRequest().body("Category not found");
-        }
-
-        if (transaction.getAmount() == 0){
-            return ResponseEntity.badRequest().body("Amount can't be 0");
-        }
-
-        boolean transactionIsExpense = transaction.getAmount() < 0;
-        boolean categoryIsExpense = selectedCategory.getType().equals(CategoryType.EXPENSE);
-
-        boolean transactionIsIncomeCatIsExpense = !transactionIsExpense && categoryIsExpense;
-        boolean transactionIsExpenseCatIsIncome = transactionIsExpense && !categoryIsExpense;
-
-        if (transactionIsExpenseCatIsIncome || transactionIsIncomeCatIsExpense){
-            return ResponseEntity.badRequest().body("Category doesn't match");
-        }
-
-        transaction.setCategory(selectedCategory);
-        transaction.setUser(currentUser);
-        currentUser.changeNetWorth(transaction.getAmount());
-
-        // Create the transaction
-        SingleTransaction createdTransaction = transactionService.createSingleTransaction(transaction);
-
-        if (createdTransaction == null) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Transaction could not be created");
-        }
-
-        return ResponseEntity.ok(transactionService.convertSingleToDTO(createdTransaction));
     }
 }

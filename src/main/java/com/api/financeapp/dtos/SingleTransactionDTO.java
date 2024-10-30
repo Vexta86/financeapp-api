@@ -3,11 +3,10 @@ package com.api.financeapp.dtos;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Date;
+
 @Setter
 @Getter
-public class SingleTransactionDTO {
-    private Long amount;
-    private String description;
-    private String date;
-    private String categoryName;
+public class SingleTransactionDTO extends TransactionDTO{
+    private Date date;
 }

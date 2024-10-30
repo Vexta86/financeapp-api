@@ -13,6 +13,5 @@ import java.util.Date;
 @Entity
 public class SingleTransaction extends Transaction{
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @Column(nullable = false)
     private Date date;
 }

@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface SingleTransactionRepository extends JpaRepository<SingleTransaction, Long> {
     Optional<List<SingleTransaction>> findAllByUser(User user);
 
+
+
 }

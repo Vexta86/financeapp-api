@@ -22,38 +22,43 @@ public class CategoryController {
 
     @GetMapping
     public ResponseEntity<Object> getAllCategories(HttpServletRequest request){
-        User currentUser = authService.currentUser(request);
-        if (currentUser == null) {
-            return ResponseEntity.badRequest().body("User not found");
+
+        try {
+            User currentUser = authService.currentUser(request);
+            List<Category> categories = categoryService.getAllCategories(currentUser);
+            return ResponseEntity.ok().body(categoryService.convertToDTOS(categories));
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Categories not found: " + e.getMessage());
         }
 
-        List<Category> categories = categoryService.getAllCategories(currentUser);
 
-        return ResponseEntity.ok().body(categoryService.convertToDTOS(categories));
+
+
+
+
     }
 
-
+    @DeleteMapping("/{categoryId}")
+    public ResponseEntity<Object> deleteCategory(@PathVariable Long categoryId, HttpServletRequest request){
+        try {
+            User currentUser = authService.currentUser(request);
+            categoryService.deleteCategory(categoryId, currentUser);
+            return ResponseEntity.status(HttpStatus.OK).body("Category deleted");
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Category could not be deleted: " + e.getMessage());
+        }
+    }
 
     @PostMapping
     public ResponseEntity<Object> newCategory(@RequestBody Category newCategory, HttpServletRequest request){
-        System.out.println("received category: " + newCategory);
-        User currentUser = authService.currentUser(request);
-        if (currentUser != null) {
-            // Set the user on the transaction
-            newCategory.setUser(currentUser);
-        } else {
-            return ResponseEntity.badRequest().body("User not found");
+
+        try{
+            User currentUser = authService.currentUser(request);
+            Category createdCategory = categoryService.createCategory(newCategory, currentUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.convertToDTO(createdCategory));
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Category could not be created: " + e.getMessage());
         }
-
-        if (categoryService.checkIfExists(newCategory, currentUser)){
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Conflict: Category could not be created due to an existing category or similar issue.");
-
-        }
-
-        Category createdCategory = categoryService.createCategory(newCategory);
-
-        return ResponseEntity.ok(categoryService.convertToDTO(createdCategory));
 
     }
 }

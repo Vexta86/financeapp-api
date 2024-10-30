@@ -2,8 +2,12 @@ package com.api.financeapp.services;
 
 import com.api.financeapp.dtos.CategoryDTO;
 import com.api.financeapp.entities.Category;
+import com.api.financeapp.entities.SingleTransaction;
+import com.api.financeapp.entities.Transaction;
 import com.api.financeapp.entities.User;
 import com.api.financeapp.repositories.CategoryRepository;
+import com.api.financeapp.repositories.TransactionRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +20,8 @@ public class CategoryService {
 
     @Autowired
     private CategoryRepository categoryRepository;
+    @Autowired
+    private TransactionRepository transactionRepository;
 
     public CategoryDTO convertToDTO(Category category){
         CategoryDTO dto = new CategoryDTO();
@@ -37,7 +43,13 @@ public class CategoryService {
         return categories.orElseGet(ArrayList::new);
     }
 
-    public Category createCategory(Category category) {
+    public Category createCategory(Category category, User user) {
+
+        boolean exists = categoryRepository.existsByNameAndTypeAndUser(category.getName(), category.getType(), user);
+        if (exists){
+            throw new IllegalArgumentException("Category already exists");
+        }
+        category.setUser(user);
         return categoryRepository.save(category);
     }
 
@@ -57,4 +69,20 @@ public class CategoryService {
 
     }
 
+    @Transactional
+    public void deleteCategory(Long categoryId, User currentUser) {
+        Optional<Category> category = categoryRepository.findByIdAndUser(categoryId, currentUser);
+        if (category.isEmpty()){
+            throw new IllegalArgumentException("Category not found");
+        }
+        List<Transaction> transactionsInCategory = transactionRepository.findAllByCategoryAndUser(category.get(), currentUser);
+        transactionsInCategory.forEach(transaction -> {
+            if (transaction instanceof SingleTransaction){
+                currentUser.changeNetWorth(-1*transaction.getAmount());
+            }
+            transactionRepository.deleteByIdAndUser(transaction.getId(), currentUser);
+
+        });
+        categoryRepository.deleteById(categoryId);
+    }
 }
