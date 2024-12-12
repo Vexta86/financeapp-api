@@ -7,8 +7,10 @@ import lombok.Setter;
 @Getter
 public class TransactionDTO {
     private Long id;
-    private Long amount;
+    private Double amount;
     private String description;
-    private String categoryName;
-    private Long categoryId;
+
+    private CategoryDTO category;
+
+
 }

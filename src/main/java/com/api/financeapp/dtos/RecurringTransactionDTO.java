@@ -8,5 +8,5 @@ import lombok.Setter;
 public class RecurringTransactionDTO extends TransactionDTO{
     private Integer frequency;
     private String frequencyUnit;
-    private Float monthlyBudget;
+    private Double monthlyBudget;
 }

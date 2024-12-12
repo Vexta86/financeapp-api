@@ -4,19 +4,35 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Date;
+import java.util.Locale;
+
 
 @Getter
 @Entity
-public class RecurringTransaction extends Transaction{
-    private Float daysToMonths(Float days){
+public class RecurringTransaction{
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-        return (float) Math.round((days / 29.6) * 100) / 100;
+    @Setter
+    @Column(nullable = false)
+    private Double amount;
 
-    }
 
-    private Float monthlyFrequency;
+    @Setter
+    @Column(nullable = false)
+    private String description;
 
-    private Float monthlyBudget;
+    @Setter
+    @ManyToOne
+    @JoinColumn()
+    private Category category;
+
+    @Setter
+    @ManyToOne
+    @JoinColumn()
+    private User user;
 
     @Setter
     private Integer frequency;
@@ -25,22 +41,25 @@ public class RecurringTransaction extends Transaction{
     @Enumerated(EnumType.STRING)
     private FrequencyUnit frequencyUnit;
 
-    public void updateMonthlyFrequency(){
-        if (frequencyUnit.equals(FrequencyUnit.MONTHS)){
-            this.monthlyFrequency = Float.valueOf(frequency);
-        }
-        if (frequencyUnit.equals(FrequencyUnit.DAYS)){
-            this.monthlyFrequency = daysToMonths(Float.valueOf(frequency));
-        }
-        if (frequencyUnit.equals(FrequencyUnit.WEEKS)){
-            this.monthlyFrequency = daysToMonths((float) (frequency * 7));
-        }
-        if (frequencyUnit.equals(FrequencyUnit.YEARS)){
-            this.monthlyFrequency = (float) (frequency * 12);
-        }
-        monthlyBudget = (float) Math.round((this.getAmount() / this.monthlyFrequency)*100) / 100;
+    private Float daysToMonths(Float days){
+        return (float) Math.round((days / 29.6) * 100) / 100;
     }
 
-
+    public Float getMonthlyFrequency(){
+        if (frequencyUnit.equals(FrequencyUnit.MONTHS)){
+            return Float.valueOf(frequency);
+        }
+        if (frequencyUnit.equals(FrequencyUnit.DAYS)){
+            return daysToMonths(Float.valueOf(frequency));
+        }
+        if (frequencyUnit.equals(FrequencyUnit.WEEKS)){
+            return daysToMonths((float) (frequency * 7));
+        }
+        // if frequency is years
+        return (float) (frequency * 12);
+    }
+    public Double getMonthlyBudget(){
+        return Double.parseDouble(String.format(Locale.US, "%.2f", this.getAmount() / this.getMonthlyFrequency()));
+    }
 
 }

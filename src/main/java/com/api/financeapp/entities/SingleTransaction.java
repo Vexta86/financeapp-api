@@ -3,15 +3,40 @@ package com.api.financeapp.entities;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
-import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Setter
 @Getter
 @Entity
-public class SingleTransaction extends Transaction{
+public class SingleTransaction {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Setter
+    @Column(nullable = false)
+    private Double amount;
+
+
+    @Setter
+    @Column(nullable = false)
+    private String description;
+
+    @Setter
+    @ManyToOne
+    @JoinColumn()
+    private Category category;
+
+    @Setter
+    @ManyToOne
+    @JoinColumn()
+    private User user;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private Date date;
+    @Column(nullable = false)
+    private LocalDate date;
 }

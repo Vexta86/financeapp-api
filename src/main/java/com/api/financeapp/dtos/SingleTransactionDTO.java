@@ -3,10 +3,10 @@ package com.api.financeapp.dtos;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 @Setter
 @Getter
 public class SingleTransactionDTO extends TransactionDTO{
-    private Date date;
+    private LocalDate date;
 }

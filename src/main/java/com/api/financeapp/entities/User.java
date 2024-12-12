@@ -7,38 +7,33 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.*;
+
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
     // Getters and Setters
-    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Setter
-    @Getter
     @Column(unique = true, nullable = false)
     private String emailAddress;
 
-    @Setter
-    @Getter
     @Column(nullable = false)
     private String password;
 
-    @Setter
-    @Getter
     private String name;
-    @Setter
-    @Getter
     private String lastName;
-
-    @Getter
-    private Long netWorth;
+    private String verificationCode;
+    private Instant verificationCodeTimestamp;
+    private boolean isActive;
 
     // Default constructor
     public User() {
@@ -46,15 +41,13 @@ public class User implements UserDetails {
     }
 
     // Constructor with parameters
-    public User(String emailAddress, String password, String name, String lastName, Long netWorth) {
+    public User(String emailAddress, String password, String name, String lastName) {
         this.emailAddress = emailAddress;
         this.password = password;
         this.name = name;
         this.lastName = lastName;
-        this.netWorth = netWorth;
     }
 
-    @Setter
     @Enumerated(EnumType.STRING)
     private Role role;
 
@@ -110,17 +103,7 @@ public class User implements UserDetails {
                 ", emailAddress='" + emailAddress + '\'' +
                 ", name='" + name + '\'' +
                 ", lastName='" + lastName + '\'' +
-                ", netWorth=" + netWorth +
                 '}';
     }
 
-    public void changeNetWorth(Long amount){
-        if (this.netWorth != null){
-            this.netWorth += amount;
-        }
-        else {
-            this.netWorth = amount;
-        }
-
-    }
 }
