@@ -44,106 +44,232 @@ public class AuthService {
         this.javaMailSender = javaMailSender;
     }
 
+    /**
+     * Registers a new user.
+     *
+     * @param request The user registration request.
+     * @return The registered user.
+     */
     public User register(User request) {
+        // Hash the user's password before saving it to the database
         request.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        // Set the user's role to USER by default
         request.setRole(Role.USER);
+
+        // Save the user to the database
         return repo.save(request);
     }
 
+    /**
+     * Authenticates a user and returns a JWT token.
+     *
+     * @param request The user login request.
+     * @return The authentication response containing the JWT token.
+     */
     public AuthResponse login(LoginRequest request) {
+        // Authenticate the user using the authentication manager
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmailAddress(), request.getPassword()));
+
+        // Retrieve the user from the database
         User user = repo.findByEmailAddress(request.getEmailAddress()).orElseThrow();
+
+        // Generate a JWT token for the user
         String token = jwtService.generateToken(user);
+
+        // Check if the user's account is active
         if (!user.isActive()){
+            // Throw an exception if the account is not active
             throw new IllegalArgumentException("Please activate your account");
         }
+
+        // Return the authentication response with the JWT token
         return AuthResponse.builder().token(token).build();
     }
 
+    /**
+     * Retrieves the current user based on the JWT token in the request.
+     *
+     * @param request The HTTP request containing the JWT token.
+     * @return The current user.
+     * @throws Exception If the JWT token is invalid or the user is not found.
+     */
     public User currentUser(HttpServletRequest request) throws Exception {
+        // Get the user's email from the JWT token
         String userEmail = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+
+        // Check if the user's email is null
         if (userEmail == null) {
+            // Throw an exception if the JWT token is invalid
             throw new Exception("Invalid JWT signature");
         }
+
+        // Find the user by email
         Optional<User> currentUser = userService.findByEmailAddress(userEmail);
+
+        // Check if the user is found
         if (currentUser.isEmpty()){
+            // Throw an exception if the user is not found
             throw new Exception("Invalid JWT signature");
         }
+
+        // Return the current user
         return currentUser.get();
     }
 
+    /**
+     * Generates a verification code for the user with the given email.
+     *
+     * @param email The user's email.
+     * @return The generated verification code.
+     */
     public String generateVerificationCode(String email){
         // Generate a 6-digit random code
         String code = RandomStringUtils.randomNumeric(6);
-        // Store the code in the database along with the user's email
+
+        // Find the user by email
         Optional<User> userOptional = userRepository.findByEmailAddress(email);
+
+        // Check if the user is found
         if (userOptional.isEmpty()){
+            // Throw an exception if the user is not found
             throw new IllegalArgumentException("User not found");
         }
 
+        // Get the user
         User user = userOptional.get();
-        Instant now = Instant.now();
-        if (user.getVerificationCodeTimestamp() != null){
-            Instant expirationTime = user.getVerificationCodeTimestamp().plusSeconds(300);
-            if (now.isBefore(expirationTime)){
-                throw new IllegalArgumentException("There is a valid code in your email");
 
+        // Get the current timestamp
+        Instant now = Instant.now();
+
+        // Check if there is an existing verification code that has not expired
+        if (user.getVerificationCodeTimestamp() != null){
+            // Calculate the expiration time of the existing code
+            Instant expirationTime = user.getVerificationCodeTimestamp().plusSeconds(300);
+
+            // Check if the existing code has not expired
+            if (now.isBefore(expirationTime)){
+                // Throw an exception if the existing code has not expired
+                throw new IllegalArgumentException("There is a valid code in your email");
             }
         }
+
+        // Set the new verification code and timestamp
         user.setVerificationCode(code);
         user.setVerificationCodeTimestamp(now);
+
+        // Save the user
         userRepository.save(user);
+
+        // Return the generated verification code
         return code;
     }
 
+    /**
+     * Sends a verification email to the user with the given email address.
+     *
+     * @param email The user's email address.
+     * @param code The verification code to be sent to the user.
+     */
     public void sendVerificationEmail(String email, String code){
+        // Find the user by email
         Optional<User> userOptional = userRepository.findByEmailAddress(email);
+
+        // Check if the user is found
         if (userOptional.isEmpty()){
+            // Throw an exception if the user is not found
             throw new IllegalArgumentException("User not found");
         }
 
+        // Get the user
         User user = userOptional.get();
+
+        // Check if the user's account is already verified
         if (user.isActive()){
+            // Throw an exception if the user's account is already verified
             throw new IllegalArgumentException("User already verified");
         }
 
-
-        // Email the user with the verification code
+        // Create a simple mail message
         SimpleMailMessage message = new SimpleMailMessage();
+
+        // Set the recipient's email address
         message.setTo(email);
+
+        // Set the email subject
         message.setSubject("Verify your email address");
+
+        // Set the email body with the verification code
         message.setText("Your verification code is: " + code);
+
+        // Send the email using the JavaMailSender
         javaMailSender.send(message);
     }
 
+    /**
+     * Verifies the verification code for the user with the given email address.
+     *
+     * @param email The user's email address.
+     * @param code The verification code to be verified.
+     * @return True if the code is valid, false otherwise.
+     */
     public boolean verifyCode(String email, String code){
-        // Verify the code by checking if it matches the one stored in the database
+        // Find the user by email
         Optional<User> userOptional = userRepository.findByEmailAddress(email);
+
+        // Check if the user is found
         if (userOptional.isEmpty()){
+            // Throw an exception if the user is not found
             throw new IllegalArgumentException("User not found");
         }
+
+        // Get the user
         User user = userOptional.get();
+
+        // Get the current timestamp
         Instant now = Instant.now();
-        // 5 minutes
-        Instant expirationTime = user.getVerificationCodeTimestamp().plusSeconds(300);
+
+        // Calculate the expiration time of the verification code
+        Instant expirationTime = user.getVerificationCodeTimestamp().plusSeconds(300); // 5 minutes
+
+        // Check if the verification code has expired
         if (now.isAfter(expirationTime)){
+            // Throw an exception if the verification code has expired
             throw new IllegalArgumentException("Code is expired");
         }
-        // Verify if the code matches
+
+        // Verify if the verification code matches the one stored in the database
         if (!user.getVerificationCode().equals(code)){
+            // Throw an exception if the verification code does not match
             throw new IllegalArgumentException("Invalid code");
         }
+
+        // Return true if the verification code is valid
         return true;
     }
 
+    /**
+     * Activates the user's account with the given email address.
+     *
+     * @param email The user's email address.
+     */
     public void activateAccount(String email){
-        // Activate the user's account by updating their status in the database
+        // Find the user by email
         Optional<User> userOptional = userRepository.findByEmailAddress(email);
+
+        // Check if the user is found
         if (userOptional.isEmpty()){
+            // Throw an exception if the user is not found
             throw new IllegalArgumentException("User not found");
         }
+
+        // Get the user
         User user = userOptional.get();
+
+        // Activate the user's account by setting their status to active
         user.setActive(true);
+
+        // Save the changes to the database
         userRepository.save(user);
     }
 
