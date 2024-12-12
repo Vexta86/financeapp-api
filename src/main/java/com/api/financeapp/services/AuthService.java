@@ -197,10 +197,14 @@ public class AuthService {
         message.setTo(email);
 
         // Set the email subject
-        message.setSubject("Verify your email address");
+        message.setSubject("FinanceApp - Código de Verificación");
 
         // Set the email body with the verification code
-        message.setText("Your verification code is: " + code);
+        message.setText("Hola " + user.getName() + ",\n\nTu código de verificación es: " + code +
+                "\n\nPor favor, ingresa este código en la aplicación para continuar con tu registro." +
+                "\nRecuerda que este código es personal y no debes compartirlo con nadie." +
+                "\n\nGracias por elegir FinanceApp.");
+
 
         // Send the email using the JavaMailSender
         javaMailSender.send(message);
