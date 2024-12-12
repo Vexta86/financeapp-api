@@ -14,8 +14,6 @@ import java.util.Optional;
 @RepositoryRestResource(exported = false)
 public interface RecurringTransactionRepository extends JpaRepository<RecurringTransaction, Long> {
     Optional<List<RecurringTransaction>> findAllByUser(User user);
-
-    List<RecurringTransaction> findAllByCategoryAndUser(Category category, User user);
     boolean existsByIdAndUser(Long id, User user);
     Optional<RecurringTransaction> findByIdAndUser(Long id, User user);
     void deleteAllByCategoryAndUser(Category category, User user);
