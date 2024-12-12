@@ -1,6 +1,5 @@
 package com.api.financeapp.controllers;
 
-import com.api.financeapp.dtos.MonthlyStatsDTO;
 import com.api.financeapp.dtos.StatsDTO;
 import com.api.financeapp.entities.User;
 import com.api.financeapp.services.AuthService;

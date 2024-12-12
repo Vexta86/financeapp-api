@@ -3,11 +3,11 @@ package com.api.financeapp.services;
 import com.api.financeapp.dtos.MonthlyStatsDTO;
 import com.api.financeapp.dtos.StatsDTO;
 import com.api.financeapp.dtos.UserDTO;
-import com.api.financeapp.entities.SingleTransaction;
+
 import com.api.financeapp.entities.User;
 import com.api.financeapp.repositories.SingleTransactionRepository;
 import com.api.financeapp.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

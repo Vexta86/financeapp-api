@@ -4,7 +4,6 @@ import com.api.financeapp.entities.*;
 import com.api.financeapp.services.AuthService;
 import com.api.financeapp.services.SingleTransactionService;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

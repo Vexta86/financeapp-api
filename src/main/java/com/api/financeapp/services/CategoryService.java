@@ -6,7 +6,7 @@ import com.api.financeapp.repositories.CategoryRepository;
 import com.api.financeapp.repositories.RecurringTransactionRepository;
 import com.api.financeapp.repositories.SingleTransactionRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

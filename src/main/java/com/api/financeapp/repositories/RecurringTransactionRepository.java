@@ -2,12 +2,9 @@ package com.api.financeapp.repositories;
 
 import com.api.financeapp.entities.Category;
 import com.api.financeapp.entities.RecurringTransaction;
-import com.api.financeapp.entities.SingleTransaction;
+
 import com.api.financeapp.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 import java.util.List;
@@ -20,8 +17,6 @@ public interface RecurringTransactionRepository extends JpaRepository<RecurringT
 
     List<RecurringTransaction> findAllByCategoryAndUser(Category category, User user);
     boolean existsByIdAndUser(Long id, User user);
-
-    void deleteByIdAndUser(Long id, User user);
     Optional<RecurringTransaction> findByIdAndUser(Long id, User user);
     void deleteAllByCategoryAndUser(Category category, User user);
 
