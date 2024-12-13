@@ -12,7 +12,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/transactions")
-@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class SingleTransactionController {
     private final SingleTransactionService transactionService;
     private final AuthService authService;
