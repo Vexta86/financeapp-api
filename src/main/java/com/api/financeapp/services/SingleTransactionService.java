@@ -42,7 +42,7 @@ public class SingleTransactionService {
     public List<SingleTransaction> getAllByDate(User user, LocalDate start, LocalDate end) {
         // Retrieve transactions from the repository
         Optional<List<SingleTransaction>> transactions = transactionRepo
-                .findAllByUserAndDateBetween(user, start, end);
+                .findAllByUserAndDateBetweenOrderByDateDesc(user, start, end);
 
         // Return the transactions, or an empty list if none are found
         return transactions.orElseGet(ArrayList::new);

@@ -1,9 +1,8 @@
 package com.api.financeapp.services;
 
-import com.api.financeapp.dtos.MonthlyStatsDTO;
-import com.api.financeapp.dtos.StatsDTO;
-import com.api.financeapp.dtos.UserDTO;
+import com.api.financeapp.dtos.*;
 
+import com.api.financeapp.entities.CategoryType;
 import com.api.financeapp.entities.User;
 import com.api.financeapp.repositories.SingleTransactionRepository;
 import com.api.financeapp.repositories.UserRepository;
@@ -84,8 +83,11 @@ public class UserService {
             LocalDate lastDayOfPreviousMonth = currentDate.minusMonths(i).with(TemporalAdjusters.lastDayOfMonth());
 
             // Retrieve income and expenses for previous month using repository methods
-            Double income = singleTransactionRepository.sumIncomeByUserBetween(user, firstDayOfPreviousMonth, lastDayOfPreviousMonth);
-            Double expenses = singleTransactionRepository.sumExpensesByUserBetween(user, firstDayOfPreviousMonth, lastDayOfPreviousMonth);
+            Double income = singleTransactionRepository
+                    .sumIncomeByUserBetween(user, firstDayOfPreviousMonth, lastDayOfPreviousMonth);
+
+            Double expenses = singleTransactionRepository
+                    .sumExpensesByUserBetween(user, firstDayOfPreviousMonth, lastDayOfPreviousMonth);
 
             // Create monthly statistics DTO
             MonthlyStatsDTO monthlyStatsDTO = getMonthlyStatsDTO(firstDayOfPreviousMonth, income, expenses);
@@ -104,7 +106,7 @@ public class UserService {
         double averageExpenses = monthCount > 0 ? totalExpenses / monthCount : 0;
         double averageNetIncome = monthCount > 0 ? totalNetIncome / monthCount : 0;
 
-// Set user statistics
+        // Set user statistics
         statsDTO.setTotalExpenses(totalExpenses);
         statsDTO.setTotalIncome(BigDecimal.valueOf(totalIncome)
                 .setScale(2, RoundingMode.HALF_UP).doubleValue());
@@ -121,6 +123,74 @@ public class UserService {
 
         return statsDTO;
     }
+
+    /**
+     * Retrieves the monthly statistics and category-wise statistics (income and expenses)
+     * for a given user and date.
+     *
+     * @param user the user for whom the statistics are calculated
+     * @param date a string representing the date (YYYY-MM-DD)
+     * @return a DTO containing monthly statistics and category-wise statistics
+     */
+    public MonthlyAndCategoriesDTO getStatsThisMonth(User user, String date) {
+
+        // Create the main DTO to hold the results
+        MonthlyAndCategoriesDTO dto = new MonthlyAndCategoriesDTO();
+
+        // Parse the provided date and determine the first and last days of the month
+        LocalDate currentDate = LocalDate.parse(date);
+        LocalDate firstDayOfPreviousMonth = currentDate.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate lastDayOfPreviousMonth = currentDate.with(TemporalAdjusters.lastDayOfMonth());
+
+        // Retrieve total income for the month; ensure null values are treated as zero
+        Double income = singleTransactionRepository
+                .sumIncomeByUserBetween(user, firstDayOfPreviousMonth, lastDayOfPreviousMonth);
+
+        // Retrieve total expenses for the month; ensure null values are treated as zero
+        Double expenses = singleTransactionRepository
+                .sumExpensesByUserBetween(user, firstDayOfPreviousMonth, lastDayOfPreviousMonth);
+
+        // populate the monthly stats dto
+        MonthlyStatsDTO statsDTO = getMonthlyStatsDTO(firstDayOfPreviousMonth, income, expenses);
+
+        // Set the current month and year in the statistics DTO
+        statsDTO.setMonth(currentDate.getMonthValue());
+        statsDTO.setYear(currentDate.getYear());
+
+        // Populate category-wise income statistics
+        List<CategoryStatsDTO> categoryIncomeStats = singleTransactionRepository
+                .sumByCategoryAndUserBetween(user, CategoryType.INCOME, firstDayOfPreviousMonth, lastDayOfPreviousMonth)
+                .stream()
+                .map(result -> {
+                    // Map the query result to a CategoryStatsDTO
+                    CategoryStatsDTO categoryStatsDTO = new CategoryStatsDTO();
+                    categoryStatsDTO.setCategory(result.getCategory()); // Map the category
+                    categoryStatsDTO.setTotal(result.getTotal()); // Set the total for this category
+                    return categoryStatsDTO;
+                })
+                .toList();
+
+        // Populate category-wise expense statistics
+        List<CategoryStatsDTO> categoryExpenseStats = singleTransactionRepository
+                .sumByCategoryAndUserBetween(user, CategoryType.EXPENSE, firstDayOfPreviousMonth, lastDayOfPreviousMonth)
+                .stream()
+                .map(result -> {
+                    // Map the query result to a CategoryStatsDTO
+                    CategoryStatsDTO categoryStatsDTO = new CategoryStatsDTO();
+                    categoryStatsDTO.setCategory(result.getCategory()); // Map the category
+                    categoryStatsDTO.setTotal(result.getTotal()); // Set the total for this category
+                    return categoryStatsDTO;
+                })
+                .toList();
+
+        // Set the calculated statistics in the final DTO
+        dto.setMonthlyStats(statsDTO);
+        dto.setIncomeCategoryStats(categoryIncomeStats);
+        dto.setExpenseCategoryStats(categoryExpenseStats);
+
+        return dto;
+    }
+
 
     /**
      * Creates a MonthlyStatsDTO object based on the provided parameters.

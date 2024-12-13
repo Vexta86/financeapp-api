@@ -1,6 +1,8 @@
 package com.api.financeapp.repositories;
 
+import com.api.financeapp.dtos.CategoryStatsDTO;
 import com.api.financeapp.entities.Category;
+import com.api.financeapp.entities.CategoryType;
 import com.api.financeapp.entities.SingleTransaction;
 import com.api.financeapp.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,7 +23,7 @@ public interface SingleTransactionRepository extends JpaRepository<SingleTransac
 
     Optional<List<SingleTransaction>> findAllByUserAndCategory(User user, Category category);
 
-    Optional<List<SingleTransaction>> findAllByUserAndDateBetween(User user, LocalDate start, LocalDate end);
+    Optional<List<SingleTransaction>> findAllByUserAndDateBetweenOrderByDateDesc(User user, LocalDate start, LocalDate end);
 
     @Query(
             "SELECT SUM(st.amount) " +
@@ -43,6 +45,15 @@ public interface SingleTransactionRepository extends JpaRepository<SingleTransac
                     "WHERE st.user = :user AND st.date BETWEEN :start AND :end"
     )
     Double sumExpensesByUserBetween(@Param("user") User user, @Param("start") LocalDate start, @Param("end") LocalDate end);
+
+    @Query("SELECT new com.api.financeapp.dtos.CategoryStatsDTO(t.category, SUM(t.amount)) " +
+            "FROM SingleTransaction t WHERE t.user = :user AND t.date BETWEEN :start AND :end AND t.category.type = :categoryType " +
+            "GROUP BY t.category")
+    List<CategoryStatsDTO> sumByCategoryAndUserBetween(@Param("user") User user,
+                                                       @Param("categoryType") CategoryType categoryType,
+                                                       @Param("start") LocalDate start,
+                                                       @Param("end") LocalDate end);
+
     Optional<SingleTransaction> findByIdAndUser(Long id, User user);
 
     void deleteAllByCategoryAndUser(Category category, User user);

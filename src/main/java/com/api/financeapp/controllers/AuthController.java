@@ -1,7 +1,9 @@
 package com.api.financeapp.controllers;
 
 
+import com.api.financeapp.entities.OTPType;
 import com.api.financeapp.entities.User;
+import com.api.financeapp.requests.ChangePasswordRequest;
 import com.api.financeapp.requests.GetCodeRequest;
 import com.api.financeapp.requests.LoginRequest;
 import com.api.financeapp.requests.VerifyCodeRequest;
@@ -29,13 +31,16 @@ public class AuthController {
     public ResponseEntity<Object > register(@RequestBody User request){
         User registeredUser = service.register(request);
         // Generate and send a verification code
-        String code = service.generateVerificationCode(registeredUser.getEmailAddress());
+        String code = service.generateVerificationCode(registeredUser.getEmailAddress(), OTPType.EMAIL_VALIDATION);
         service.sendVerificationEmail(request.getEmailAddress(), code);
         return ResponseEntity.ok("Verification code sent. Please check your inbox.");
     }
     @PostMapping("/send-code")
-    public ResponseEntity<Object> emailVerificationCode(@RequestBody GetCodeRequest request){
-        String code = service.generateVerificationCode(request.getEmailAddress());
+    public ResponseEntity<Object> emailVerificationCode(
+            @RequestBody GetCodeRequest request,
+            @RequestParam OTPType type
+    ){
+        String code = service.generateVerificationCode(request.getEmailAddress(), type);
         service.sendVerificationEmail(request.getEmailAddress(), code);
         return ResponseEntity.ok("Verification code sent. Please check your inbox.");
 
@@ -43,10 +48,21 @@ public class AuthController {
     @PostMapping("/verify-code")
     public ResponseEntity<String> verifyCode(@RequestBody VerifyCodeRequest request){
         // Verify the code
-        if(service.verifyCode(request.getEmailAddress(), request.getCode())){
+        if(service.verifyCode(request.getEmailAddress(), request.getCode(), OTPType.EMAIL_VALIDATION)){
             service.activateAccount(request.getEmailAddress());
             return ResponseEntity.ok("Email verified successfully. You can now log in.");
         } else {
+            return ResponseEntity.badRequest().body("Invalid verification code.");
+        }
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Object> changePassword(@RequestBody ChangePasswordRequest request){
+        if (service.verifyCode(request.getEmailAddress(), request.getCode(), OTPType.PASSWORD_CHANGE)){
+            service.changePassword(request.getEmailAddress(), request.getNewPassword());
+            return ResponseEntity.ok("Password changed successfully. You can now log in.");
+        }
+        else {
             return ResponseEntity.badRequest().body("Invalid verification code.");
         }
     }

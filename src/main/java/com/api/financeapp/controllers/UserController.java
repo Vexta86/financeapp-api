@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
+
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -39,6 +41,21 @@ public class UserController {
             User currentUser = authService.currentUser(request);
 
             StatsDTO statsDTO = userService.getStats(currentUser, previousMonths);
+            return ResponseEntity.status(HttpStatus.OK).body(statsDTO);
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Transactions not found: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/this-month")
+    public ResponseEntity<Object> thisMonth(
+            HttpServletRequest request,
+            @RequestParam String currentDate
+    ){
+        try{
+            User currentUser = authService.currentUser(request);
+
+            Object statsDTO = userService.getStatsThisMonth(currentUser, currentDate);
             return ResponseEntity.status(HttpStatus.OK).body(statsDTO);
         }catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Transactions not found: " + e.getMessage());

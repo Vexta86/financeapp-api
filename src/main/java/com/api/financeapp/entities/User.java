@@ -16,6 +16,7 @@ import java.util.Objects;
 @Setter
 @Getter
 @Entity
+@Table(name = "users")
 public class User implements UserDetails {
     // Getters and Setters
     @Id
@@ -30,8 +31,7 @@ public class User implements UserDetails {
 
     private String name;
     private String lastName;
-    private String verificationCode;
-    private Instant verificationCodeTimestamp;
+
     private boolean isActive;
 
     // Default constructor

@@ -48,7 +48,7 @@ public class SingleTransactionController {
             return ResponseEntity.status(HttpStatus.OK).body(transactionService.convertToDTOS(transactions));
         }catch (Exception e){
             // Return an error response if an exception occurs
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Transactions not found: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Transactions not found: " + e.getMessage());
         }
     }
 

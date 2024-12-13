@@ -34,16 +34,8 @@ public class CategoryService {
      * @return CategoryDTO
      */
     public CategoryDTO convertToDTO(Category category){
-        // Create a new CategoryDTO
-        CategoryDTO dto = new CategoryDTO();
-
-        // Populate the DTO with data from the category entity
-        dto.setId(category.getId());
-        dto.setName(category.getName());
-        dto.setType(category.getType());
-
         // Return the populated DTO
-        return dto;
+        return new CategoryDTO(category);
     }
 
     /**
