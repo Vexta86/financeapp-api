@@ -13,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/transactions/recurring")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class RecurringTransactionController {
     private final RecurringTransactionService transactionService;
     private final AuthService authService;
