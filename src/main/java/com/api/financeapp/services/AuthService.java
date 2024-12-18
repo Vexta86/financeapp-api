@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -33,6 +34,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final UserOTPRepository otpRepository;
     private JavaMailSender javaMailSender;
+
 
     @Autowired
     public AuthService(UserRepository repo, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager, UserService userService, UserRepository userRepository, UserOTPRepository otpRepository, JavaMailSender javaMailSender) {
@@ -126,6 +128,7 @@ public class AuthService {
      * @return The generated verification code.
      */
     public String generateVerificationCode(String email, OTPType type){
+
         // Generate a 6-digit random code
         String code = RandomStringUtils.randomNumeric(6);
 
@@ -170,6 +173,10 @@ public class AuthService {
             // Update the existing OTP with a new code and timestamp
             otp.setOtp(code);
             otp.setOtpTimestamp(now);
+
+            otpRepository.save(otp);
+
+            return otp.getOtp();
         } else {
             // If no existing OTP is found, create a new UserOTP instance
             UserOTP newOtp = new UserOTP();
@@ -179,9 +186,11 @@ public class AuthService {
 
             // Save the new OTP entity to the database
             otpRepository.save(newOtp);
+
+            return newOtp.getOtp();
         }
         // Return the generated verification code
-        return code;
+
     }
 
     /**
@@ -284,13 +293,15 @@ public class AuthService {
         Instant expirationTime = otp.getOtpTimestamp().plusSeconds(300); // 5 minutes
 
         // Check if the verification code has expired
-        if (now.isBefore(expirationTime)){
+        if (now.isAfter(expirationTime)){
+
             // Throw an exception if the verification code has expired
             throw new IllegalArgumentException("Code is expired");
         }
 
         // Verify if the verification code matches the one stored in the database
         if (!otp.getOtp().equals(code)){
+
             // Throw an exception if the verification code does not match
             throw new IllegalArgumentException("Invalid code");
         }
