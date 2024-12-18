@@ -284,7 +284,7 @@ public class AuthService {
         Instant expirationTime = otp.getOtpTimestamp().plusSeconds(300); // 5 minutes
 
         // Check if the verification code has expired
-        if (now.isAfter(expirationTime)){
+        if (now.isBefore(expirationTime)){
             // Throw an exception if the verification code has expired
             throw new IllegalArgumentException("Code is expired");
         }
