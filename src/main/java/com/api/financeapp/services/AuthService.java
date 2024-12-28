@@ -232,16 +232,17 @@ public class AuthService {
         SimpleMailMessage message = new SimpleMailMessage();
 
         // Set the recipient's email address
+        message.setFrom("noresponse@intfinity.co");
         message.setTo(email);
 
         // Set the email subject
-        message.setSubject("FinanceApp - Código de Verificación");
+        message.setSubject("Intfinity Account - Código de Verificación");
 
         // Set the email body with the verification code
         message.setText("Hola " + user.getName() + ",\n\nTu código de verificación es: " + code +
-                "\n\nPor favor, ingresa este código en la aplicación para continuar con tu registro." +
+                "\n\nPor favor, ingresa este código en la aplicación para verificar tu identidad." +
                 "\nRecuerda que este código es personal y no debes compartirlo con nadie." +
-                "\n\nGracias por elegir FinanceApp.");
+                "\n\nGracias por usar Intfinity.");
         return message;
     }
 
