@@ -12,7 +12,5 @@ public class MonthlyStatsDTO {
     private double totalExpenses;
     private double netIncome;
 
-    private int month;
-    private int year;
 
 }

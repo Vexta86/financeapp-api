@@ -43,6 +43,23 @@ public class UserController {
         }
     }
 
+    @GetMapping("/stats-in")
+    public ResponseEntity<Object> getStatsBetween(
+            HttpServletRequest request,
+            @RequestParam String startDate,
+            @RequestParam String endDate
+    ) {
+        try {
+            User currentUser = authService.currentUser(request);
+            Object statsDTO = userService.getStatsBetween(currentUser, startDate, endDate);
+            return ResponseEntity.status(HttpStatus.OK).body(statsDTO);
+
+        } catch (Exception e){
+            // Return an error response if an exception occurs
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Transactions not found: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/this-month")
     public ResponseEntity<Object> thisMonth(
             HttpServletRequest request,
@@ -54,7 +71,7 @@ public class UserController {
             Object statsDTO = userService.getStatsThisMonth(currentUser, currentDate);
             return ResponseEntity.status(HttpStatus.OK).body(statsDTO);
         }catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Transactions not found: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Transactions not found: " + e.getMessage());
         }
     }
 }

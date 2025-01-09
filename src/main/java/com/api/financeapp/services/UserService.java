@@ -59,6 +59,7 @@ public class UserService {
         return dto;
     }
 
+
     /**
      * Retrieves user statistics for a specified number of previous months.
      *
@@ -123,43 +124,31 @@ public class UserService {
 
         return statsDTO;
     }
-
     /**
-     * Retrieves the monthly statistics and category-wise statistics (income and expenses)
-     * for a given user and date.
+     * Retrieves the statistics and category-wise statistics (income and expenses)
+     * for a given user in a range date.
      *
      * @param user the user for whom the statistics are calculated
-     * @param date a string representing the date (YYYY-MM-DD)
-     * @return a DTO containing monthly statistics and category-wise statistics
+     * @param startDate a localDate representing the start date
+     * @param endDate a localDate representing the end date
+     * @return a DTO containing statistics and category-wise statistics
      */
-    public MonthlyAndCategoriesDTO getStatsThisMonth(User user, String date) {
-
-        // Create the main DTO to hold the results
+    public MonthlyAndCategoriesDTO getStatsBetween(User user, LocalDate startDate, LocalDate endDate){
         MonthlyAndCategoriesDTO dto = new MonthlyAndCategoriesDTO();
-
-        // Parse the provided date and determine the first and last days of the month
-        LocalDate currentDate = LocalDate.parse(date);
-        LocalDate firstDayOfPreviousMonth = currentDate.with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate lastDayOfPreviousMonth = currentDate.with(TemporalAdjusters.lastDayOfMonth());
 
         // Retrieve total income for the month; ensure null values are treated as zero
         Double income = singleTransactionRepository
-                .sumIncomeByUserBetween(user, firstDayOfPreviousMonth, lastDayOfPreviousMonth);
+                .sumIncomeByUserBetween(user, startDate, endDate);
 
         // Retrieve total expenses for the month; ensure null values are treated as zero
         Double expenses = singleTransactionRepository
-                .sumExpensesByUserBetween(user, firstDayOfPreviousMonth, lastDayOfPreviousMonth);
-
+                .sumExpensesByUserBetween(user, startDate, endDate);
         // populate the monthly stats dto
-        MonthlyStatsDTO statsDTO = getMonthlyStatsDTO(firstDayOfPreviousMonth, income, expenses);
-
-        // Set the current month and year in the statistics DTO
-        statsDTO.setMonth(currentDate.getMonthValue());
-        statsDTO.setYear(currentDate.getYear());
+        MonthlyStatsDTO statsDTO = getMonthlyStatsDTO(startDate, income, expenses);
 
         // Populate category-wise income statistics
         List<CategoryStatsDTO> categoryIncomeStats = singleTransactionRepository
-                .sumByCategoryAndUserBetween(user, CategoryType.INCOME, firstDayOfPreviousMonth, lastDayOfPreviousMonth)
+                .sumByCategoryAndUserBetween(user, CategoryType.INCOME, startDate, endDate)
                 .stream()
                 .map(result -> {
                     // Map the query result to a CategoryStatsDTO
@@ -172,7 +161,7 @@ public class UserService {
 
         // Populate category-wise expense statistics
         List<CategoryStatsDTO> categoryExpenseStats = singleTransactionRepository
-                .sumByCategoryAndUserBetween(user, CategoryType.EXPENSE, firstDayOfPreviousMonth, lastDayOfPreviousMonth)
+                .sumByCategoryAndUserBetween(user, CategoryType.EXPENSE, startDate, endDate)
                 .stream()
                 .map(result -> {
                     // Map the query result to a CategoryStatsDTO
@@ -189,8 +178,33 @@ public class UserService {
         dto.setExpenseCategoryStats(categoryExpenseStats);
 
         return dto;
+
+    }
+    /**
+     * Retrieves the monthly statistics and category-wise statistics (income and expenses)
+     * for a given user and date.
+     *
+     * @param user the user for whom the statistics are calculated
+     * @param date a string representing the date (YYYY-MM-DD)
+     * @return a DTO containing monthly statistics and category-wise statistics
+     */
+    public MonthlyAndCategoriesDTO getStatsThisMonth(User user, String date) {
+
+        // Parse the provided date and determine the first and last days of the month
+        LocalDate currentDate = LocalDate.parse(date);
+        LocalDate firstDayOfPreviousMonth = currentDate.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate lastDayOfPreviousMonth = currentDate.with(TemporalAdjusters.lastDayOfMonth());
+
+
+        return getStatsBetween(user, firstDayOfPreviousMonth, lastDayOfPreviousMonth);
     }
 
+    public MonthlyAndCategoriesDTO getStatsBetween(User user, String givenStartDate, String givenEndDate){
+        LocalDate startDate = LocalDate.parse(givenStartDate);
+        LocalDate endDate = LocalDate.parse(givenEndDate);
+
+        return getStatsBetween(user, startDate, endDate);
+    }
 
     /**
      * Creates a MonthlyStatsDTO object based on the provided parameters.
@@ -203,10 +217,6 @@ public class UserService {
     private static MonthlyStatsDTO getMonthlyStatsDTO(LocalDate firstDayOfPreviousMonth, Double income, Double expenses) {
         // Create a new MonthlyStatsDTO object
         MonthlyStatsDTO monthlyStatsDTO = new MonthlyStatsDTO();
-
-        // Set the month and year based on the first day of the previous month
-        monthlyStatsDTO.setMonth(firstDayOfPreviousMonth.getMonthValue());
-        monthlyStatsDTO.setYear(firstDayOfPreviousMonth.getYear());
 
         // Set the total income, handling null values
         monthlyStatsDTO.setTotalIncome(income != null ? BigDecimal.valueOf(income)
