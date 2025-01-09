@@ -57,4 +57,7 @@ public interface SingleTransactionRepository extends JpaRepository<SingleTransac
     Optional<SingleTransaction> findByIdAndUser(Long id, User user);
 
     void deleteAllByCategoryAndUser(Category category, User user);
+
+    List<SingleTransaction> findAllByUserAndDateBetween(User user, LocalDate startDate, LocalDate endDate);
+
 }

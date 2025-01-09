@@ -36,7 +36,7 @@ public class UserController {
         try{
             User currentUser = authService.currentUser(request);
 
-            StatsDTO statsDTO = userService.getStats(currentUser, previousMonths);
+            StatsDTO statsDTO = userService.getPreviousMonthStats(currentUser, previousMonths);
             return ResponseEntity.status(HttpStatus.OK).body(statsDTO);
         }catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Transactions not found: " + e.getMessage());
@@ -51,7 +51,7 @@ public class UserController {
     ) {
         try {
             User currentUser = authService.currentUser(request);
-            Object statsDTO = userService.getStatsBetween(currentUser, startDate, endDate);
+            Object statsDTO = userService.getStatsPerCategoryBetween(currentUser, startDate, endDate);
             return ResponseEntity.status(HttpStatus.OK).body(statsDTO);
 
         } catch (Exception e){

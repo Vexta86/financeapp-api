@@ -17,7 +17,9 @@ public class StatsDTO {
     private double totalExpenses;
     private double averageNetIncome;
 
-    private List<MonthlyStatsDTO> monthlyStats;
+    List<CategoryStatsDTO> statsPerIncomeCategory;
+    List<CategoryStatsDTO> statsPerExpenseCategory;
+    List<MonthlyStatsDTO> statsPerMonth;
 
 
 

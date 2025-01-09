@@ -8,7 +8,8 @@ import java.util.List;
 @Getter
 @Setter
 public class MonthlyAndCategoriesDTO {
-    MonthlyStatsDTO monthlyStats;
+    MonthlyStatsDTO totalStats;
     List<CategoryStatsDTO> incomeCategoryStats;
     List<CategoryStatsDTO> expenseCategoryStats;
+    List<MonthlyStatsDTO> statsPerMonth;
 }

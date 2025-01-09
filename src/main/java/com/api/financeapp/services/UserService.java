@@ -3,6 +3,7 @@ package com.api.financeapp.services;
 import com.api.financeapp.dtos.*;
 
 import com.api.financeapp.entities.CategoryType;
+import com.api.financeapp.entities.SingleTransaction;
 import com.api.financeapp.entities.User;
 import com.api.financeapp.repositories.SingleTransactionRepository;
 import com.api.financeapp.repositories.UserRepository;
@@ -16,6 +17,9 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.Map;
+
 
 @Service
 public class UserService {
@@ -60,6 +64,7 @@ public class UserService {
     }
 
 
+
     /**
      * Retrieves user statistics for a specified number of previous months.
      *
@@ -67,7 +72,7 @@ public class UserService {
      * @param previousMonths Number of previous months to include in statistics
      * @return User statistics DTO
      */
-    public StatsDTO getStats(User user, int previousMonths) {
+    public StatsDTO getPreviousMonthStats(User user, int previousMonths) {
         // Initialize user statistics
         StatsDTO statsDTO = new StatsDTO();
 
@@ -92,7 +97,8 @@ public class UserService {
 
             // Create monthly statistics DTO
             MonthlyStatsDTO monthlyStatsDTO = getMonthlyStatsDTO(firstDayOfPreviousMonth, income, expenses);
-
+            monthlyStatsDTO.setMonth(firstDayOfPreviousMonth.getMonthValue());
+            monthlyStatsDTO.setYear(firstDayOfPreviousMonth.getYear());
             monthlyStatsDTOS.add(monthlyStatsDTO);
         }
 
@@ -120,7 +126,7 @@ public class UserService {
         statsDTO.setAverageNetIncome(BigDecimal.valueOf(averageNetIncome)
                 .setScale(2, RoundingMode.HALF_UP).doubleValue());
         statsDTO.setNetWorth(transactionService.getNetWorth(user));
-        statsDTO.setMonthlyStats(monthlyStatsDTOS);
+        statsDTO.setStatsPerMonth(monthlyStatsDTOS);
 
         return statsDTO;
     }
@@ -133,8 +139,8 @@ public class UserService {
      * @param endDate a localDate representing the end date
      * @return a DTO containing statistics and category-wise statistics
      */
-    public MonthlyAndCategoriesDTO getStatsBetween(User user, LocalDate startDate, LocalDate endDate){
-        MonthlyAndCategoriesDTO dto = new MonthlyAndCategoriesDTO();
+    public StatsDTO getStatsPerCategoryBetween(User user, LocalDate startDate, LocalDate endDate){
+        StatsDTO dto = new StatsDTO();
 
         // Retrieve total income for the month; ensure null values are treated as zero
         Double income = singleTransactionRepository
@@ -143,8 +149,6 @@ public class UserService {
         // Retrieve total expenses for the month; ensure null values are treated as zero
         Double expenses = singleTransactionRepository
                 .sumExpensesByUserBetween(user, startDate, endDate);
-        // populate the monthly stats dto
-        MonthlyStatsDTO statsDTO = getMonthlyStatsDTO(startDate, income, expenses);
 
         // Populate category-wise income statistics
         List<CategoryStatsDTO> categoryIncomeStats = singleTransactionRepository
@@ -172,11 +176,75 @@ public class UserService {
                 })
                 .toList();
 
-        // Set the calculated statistics in the final DTO
-        dto.setMonthlyStats(statsDTO);
-        dto.setIncomeCategoryStats(categoryIncomeStats);
-        dto.setExpenseCategoryStats(categoryExpenseStats);
+        List<MonthlyStatsDTO> monthlyStats = singleTransactionRepository
+                .findAllByUserAndDateBetween(user, startDate, endDate)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        transaction -> Map.entry(
+                                transaction.getDate().getYear(),
+                                transaction.getDate().getMonthValue() // Group by year and month
+                        ),
+                        Collectors.collectingAndThen(
+                                Collectors.toList(), // Collect transactions for each group
+                                transactions -> {
+                                    double totalIncome = transactions.stream()
+                                            .filter(tx -> tx.getAmount() > 0) // Filter income
+                                            .mapToDouble(SingleTransaction::getAmount)
+                                            .sum();
 
+                                    double totalExpenses = transactions.stream()
+                                            .filter(tx -> tx.getAmount() < 0) // Filter expenses
+                                            .mapToDouble(SingleTransaction::getAmount)
+                                            .sum();
+
+                                    double netIncome = totalIncome + totalExpenses;
+
+                                    MonthlyStatsDTO statsDTO = new MonthlyStatsDTO();
+                                    statsDTO.setYear(transactions.get(0).getDate().getYear());
+                                    statsDTO.setMonth(transactions.get(0).getDate().getMonthValue());
+                                    statsDTO.setTotalIncome(totalIncome);
+                                    statsDTO.setTotalExpenses(totalExpenses);
+                                    statsDTO.setNetIncome(netIncome);
+
+                                    return statsDTO;
+                                }
+                        )
+                ))
+                .values()
+                .stream()
+                .toList();
+
+
+
+        // Calculate average income, expenses, and net income
+        int monthCount = monthlyStats.size();
+        double averageIncome = monthCount > 0 ? income / monthCount : 0;
+        double averageExpenses = monthCount > 0 ? expenses / monthCount : 0;
+        double averageNetIncome = monthCount > 0 ? (income-expenses) / monthCount : 0;
+
+
+        // Set the calculated statistics in the final DTO
+
+        // Set user statistics
+
+        dto.setTotalExpenses(BigDecimal.valueOf(expenses)
+                .setScale(2, RoundingMode.HALF_UP).doubleValue());
+        dto.setTotalIncome(BigDecimal.valueOf(income)
+                .setScale(2, RoundingMode.HALF_UP).doubleValue());
+        dto.setNetIncome(BigDecimal.valueOf(income+expenses)
+                .setScale(2, RoundingMode.HALF_UP).doubleValue());
+
+        dto.setAverageExpenses(BigDecimal.valueOf(averageExpenses)
+                .setScale(2, RoundingMode.HALF_UP).doubleValue());
+        dto.setAverageIncome(BigDecimal.valueOf(averageIncome)
+                .setScale(2, RoundingMode.HALF_UP).doubleValue());
+        dto.setAverageNetIncome(BigDecimal.valueOf(averageNetIncome)
+                .setScale(2, RoundingMode.HALF_UP).doubleValue());
+        dto.setNetWorth(transactionService.getNetWorth(user));
+
+        dto.setStatsPerIncomeCategory(categoryIncomeStats);
+        dto.setStatsPerExpenseCategory(categoryExpenseStats);
+        dto.setStatsPerMonth(monthlyStats);
         return dto;
 
     }
@@ -188,7 +256,7 @@ public class UserService {
      * @param date a string representing the date (YYYY-MM-DD)
      * @return a DTO containing monthly statistics and category-wise statistics
      */
-    public MonthlyAndCategoriesDTO getStatsThisMonth(User user, String date) {
+    public StatsDTO getStatsThisMonth(User user, String date) {
 
         // Parse the provided date and determine the first and last days of the month
         LocalDate currentDate = LocalDate.parse(date);
@@ -196,14 +264,14 @@ public class UserService {
         LocalDate lastDayOfPreviousMonth = currentDate.with(TemporalAdjusters.lastDayOfMonth());
 
 
-        return getStatsBetween(user, firstDayOfPreviousMonth, lastDayOfPreviousMonth);
+        return getStatsPerCategoryBetween(user, firstDayOfPreviousMonth, lastDayOfPreviousMonth);
     }
 
-    public MonthlyAndCategoriesDTO getStatsBetween(User user, String givenStartDate, String givenEndDate){
+    public StatsDTO getStatsPerCategoryBetween(User user, String givenStartDate, String givenEndDate){
         LocalDate startDate = LocalDate.parse(givenStartDate);
         LocalDate endDate = LocalDate.parse(givenEndDate);
 
-        return getStatsBetween(user, startDate, endDate);
+        return getStatsPerCategoryBetween(user, startDate, endDate);
     }
 
     /**
