@@ -197,16 +197,7 @@ public class UserService {
                                             .mapToDouble(SingleTransaction::getAmount)
                                             .sum();
 
-                                    double netIncome = totalIncome + totalExpenses;
-
-                                    MonthlyStatsDTO statsDTO = new MonthlyStatsDTO();
-                                    statsDTO.setYear(transactions.get(0).getDate().getYear());
-                                    statsDTO.setMonth(transactions.get(0).getDate().getMonthValue());
-                                    statsDTO.setTotalIncome(totalIncome);
-                                    statsDTO.setTotalExpenses(totalExpenses);
-                                    statsDTO.setNetIncome(netIncome);
-
-                                    return statsDTO;
+                                    return getStatsDTO(transactions, totalIncome, totalExpenses);
                                 }
                         )
                 ))
@@ -220,7 +211,7 @@ public class UserService {
         int monthCount = monthlyStats.size();
         double averageIncome = monthCount > 0 ? income / monthCount : 0;
         double averageExpenses = monthCount > 0 ? expenses / monthCount : 0;
-        double averageNetIncome = monthCount > 0 ? (income-expenses) / monthCount : 0;
+        double averageNetIncome = monthCount > 0 ? (income+expenses) / monthCount : 0;
 
 
         // Set the calculated statistics in the final DTO
@@ -248,6 +239,19 @@ public class UserService {
         return dto;
 
     }
+
+    private static MonthlyStatsDTO getStatsDTO(List<SingleTransaction> transactions, double totalIncome, double totalExpenses) {
+        double netIncome = totalIncome + totalExpenses;
+
+        MonthlyStatsDTO statsDTO = new MonthlyStatsDTO();
+        statsDTO.setYear(transactions.get(0).getDate().getYear());
+        statsDTO.setMonth(transactions.get(0).getDate().getMonthValue());
+        statsDTO.setTotalIncome(totalIncome);
+        statsDTO.setTotalExpenses(totalExpenses);
+        statsDTO.setNetIncome(netIncome);
+        return statsDTO;
+    }
+
     /**
      * Retrieves the monthly statistics and category-wise statistics (income and expenses)
      * for a given user and date.
