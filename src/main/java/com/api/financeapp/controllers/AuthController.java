@@ -33,10 +33,10 @@ public class AuthController {
         // Create secure HTTP-only cookie
         ResponseCookie cookie = ResponseCookie.from("jwt",  service.login(request))
                 .httpOnly(true)
-                .secure(true) // set to true in production (HTTPS)
+                .secure(false) // set to true in production (HTTPS)
                 .path("/")
                 .maxAge(Duration.ofHours(10)) // Match the JWT's expiration
-                .sameSite("Strict") // or "Lax" if needed for frontend
+                .sameSite("None") // or "Lax" if needed for frontend
                 .build();
 
         // Set cookie in response
