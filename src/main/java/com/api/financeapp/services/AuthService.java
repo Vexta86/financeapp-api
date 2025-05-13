@@ -27,10 +27,10 @@ import java.util.Optional;
 public class AuthService {
 
     private final UserRepository repo;
-    private  PasswordEncoder passwordEncoder;
-    private  JwtService jwtService;
-    private  AuthenticationManager authenticationManager;
-    private UserService userService;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
+    private final UserService userService;
     private final UserRepository userRepository;
     private final UserOTPRepository otpRepository;
     private JavaMailSender javaMailSender;

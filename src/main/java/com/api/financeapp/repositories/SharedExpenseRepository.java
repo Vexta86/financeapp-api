@@ -12,7 +12,5 @@ public interface SharedExpenseRepository extends JpaRepository<SharedExpense, UU
 
     List<SharedExpense> findByPaidBy(GroupMember member);
 
-    List<SharedExpense> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 
-    List<SharedExpense> findByPaidByExpenseGroupId(UUID expenseGroupId);
 }

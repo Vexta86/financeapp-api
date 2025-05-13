@@ -9,11 +9,17 @@ import java.util.UUID;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
+@Table(
+        name = "group_member",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"expense_group_id", "user_id"})
+)
 public class GroupMember {
 
     @Id
     @GeneratedValue
-    private UUID id;
+    private Long id;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "expense_group_id", nullable = false)
@@ -26,7 +32,7 @@ public class GroupMember {
     @Column(nullable = false)
     private String nickname;
 
-    @Column(nullable = false)
+    @Column()
     private float percent;
 
     @Column(name = "is_owner", nullable = false)
@@ -35,55 +41,5 @@ public class GroupMember {
     @Column(name = "invited_email")
     private String invitedEmail;
 
-    public User getUser() {
-        return user;
-    }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public ExpenseGroup getExpenseGroup() {
-        return expenseGroup;
-    }
-
-    public float getPercent() {
-        return percent;
-    }
-
-    public String getInvitedEmail() {
-        return invitedEmail;
-    }
-
-    public String getNickname() {
-        return nickname;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public void setExpenseGroup(ExpenseGroup expenseGroup) {
-        this.expenseGroup = expenseGroup;
-    }
-
-    public void setInvitedEmail(String invitedEmail) {
-        this.invitedEmail = invitedEmail;
-    }
-
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-
-    public void setOwner(boolean owner) {
-        isOwner = owner;
-    }
-
-    public void setPercent(float percent) {
-        this.percent = percent;
-    }
 }
