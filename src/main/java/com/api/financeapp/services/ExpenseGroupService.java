@@ -150,7 +150,7 @@ public class ExpenseGroupService {
         private String to;
         private Float amount;
     }
-    public Object solve(Long groupId, User requester){
+    public Object solve(Long groupId, User requester) {
         // Check if the requester belongs to the group
         boolean belongs = groupMemberRepository.existsByExpenseGroup_IdAndUser(groupId, requester);
         if (!belongs) {
@@ -158,69 +158,66 @@ public class ExpenseGroupService {
         }
 
         List<GroupMember> members = groupMemberRepository.findByExpenseGroup_Id(groupId);
-        // Fetch and return the expenses
         List<SharedExpense> expenses = sharedExpenseRepository.findByPaidBy_ExpenseGroup_Id(groupId);
-        HashMap<Long, GroupMemberSolver> memberSolvers = new HashMap<>();
 
+        Map<Long, GroupMemberSolver> memberSolvers = new HashMap<>();
         Float total = sharedExpenseRepository.sumByGroupId(groupId);
         float totalPerMember = total / members.size();
 
-        // Populate with people in the group
+        // Initialize balances
         for (GroupMember member : members) {
             memberSolvers.put(member.getId(), new GroupMemberSolver(member, -totalPerMember));
         }
-        // Update balance with expenses
+
+        // Adjust balances based on expenses
         for (SharedExpense expense : expenses) {
-            GroupMemberSolver memberSolver = memberSolvers.get(expense.getPaidBy().getId());
-            if (memberSolver != null) {
-                Float newBalance = memberSolver.getBalance() + expense.getAmount();
-                memberSolver.setBalance(newBalance);
+            GroupMemberSolver solver = memberSolvers.get(expense.getPaidBy().getId());
+            if (solver != null) {
+                solver.setBalance(solver.getBalance() + expense.getAmount());
             }
         }
-        Queue<GroupMemberSolver> positiveQueue = new PriorityQueue<>(Comparator.comparing(GroupMemberSolver::getBalance));
 
-        Queue<GroupMemberSolver> negativeQueue = new PriorityQueue<>(Comparator.comparing(GroupMemberSolver::getBalance).reversed());
-
-        // Populate positive and negative queues
-        // We use a priority queue to sort the members by their balance
-        for (Long key : memberSolvers.keySet()) {
-            GroupMemberSolver memberSolver = memberSolvers.get(key);
-            if (memberSolver.getBalance() > 0) {
-                positiveQueue.add(memberSolver);
-            } else if (memberSolver.getBalance() < 0) {
-                negativeQueue.add(memberSolver);
+        // Prepare list of balances and corresponding member info
+        List<Float> netAmounts = new ArrayList<>();
+        List<GroupMemberSolver> orderedMembers = new ArrayList<>();
+        for (GroupMemberSolver solver : memberSolvers.values()) {
+            if (Math.abs(solver.getBalance()) > 0.01f) {
+                netAmounts.add(solver.getBalance());
+                orderedMembers.add(solver);
             }
         }
 
         List<DebtTransaction> transactions = new ArrayList<>();
-        while (!positiveQueue.isEmpty()){
-            GroupMemberSolver positiveMember = positiveQueue.remove();
-            while (positiveMember.balance > 0){
-                if (negativeQueue.isEmpty()){
-                    break;
-                }
-                GroupMemberSolver negativeMember = negativeQueue.peek();
-                float amount = Math.min(positiveMember.balance, -negativeMember.balance);
-                positiveMember.setBalance(positiveMember.getBalance()-amount);
-                negativeMember.setBalance(negativeMember.getBalance()+amount);
+        minimizeTransactions(netAmounts, orderedMembers, transactions);
+        return transactions;
+    }
 
-                System.out.println("Transfer " + amount + " from " + negativeMember.getNickname() + " to " + positiveMember.getNickname());
-                DebtTransaction transaction = new DebtTransaction();
-                transaction.setFrom(negativeMember.getNickname());
-                transaction.setTo(positiveMember.getNickname());
-                transaction.setAmount(amount);
-                transactions.add(transaction);
-
-                if (negativeMember.balance == 0){
-                    negativeQueue.remove();
-                }
-            }
+    private void minimizeTransactions(List<Float> netAmounts, List<GroupMemberSolver> members, List<DebtTransaction> transactions) {
+        int maxCredit = 0, maxDebit = 0;
+        for (int i = 1; i < netAmounts.size(); i++) {
+            if (netAmounts.get(i) > netAmounts.get(maxCredit)) maxCredit = i;
+            if (netAmounts.get(i) < netAmounts.get(maxDebit)) maxDebit = i;
         }
 
-        return transactions;
+        // Base case
+        if (Math.abs(netAmounts.get(maxCredit)) < 0.01f && Math.abs(netAmounts.get(maxDebit)) < 0.01f) {
+            return;
+        }
 
+        float amount = Math.min(-netAmounts.get(maxDebit), netAmounts.get(maxCredit));
+        netAmounts.set(maxCredit, netAmounts.get(maxCredit) - amount);
+        netAmounts.set(maxDebit, netAmounts.get(maxDebit) + amount);
 
+        DebtTransaction transaction = new DebtTransaction();
+        transaction.setFrom(members.get(maxDebit).getNickname());
+        transaction.setTo(members.get(maxCredit).getNickname());
+        transaction.setAmount(amount);
+        transactions.add(transaction);
+
+        // Recursive call
+        minimizeTransactions(netAmounts, members, transactions);
     }
+
 
 
 
