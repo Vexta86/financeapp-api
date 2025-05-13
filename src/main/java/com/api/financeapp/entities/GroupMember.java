@@ -13,12 +13,16 @@ import java.util.UUID;
 @Setter
 @Table(
         name = "group_member",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"expense_group_id", "user_id"})
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"expense_group_id", "user_id"}),
+                @UniqueConstraint(columnNames = {"expense_group_id", "nickname"})
+        }
 )
+
 public class GroupMember {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(optional = false)
