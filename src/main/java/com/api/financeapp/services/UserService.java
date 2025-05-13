@@ -52,15 +52,15 @@ public class UserService {
      * @return User DTO
      */
     public UserDTO convertUserToDto(User user){
-        UserDTO dto = new UserDTO();
-        dto.setEmailAddress(user.getEmailAddress());
-        dto.setName(user.getName());
-        dto.setLastName(user.getLastName());
-        dto.setRole(String.valueOf(user.getRole()));
+        Double netWorth = transactionService.getNetWorth(user);
 
-        // Calculate net worth using transaction service
-        dto.setNetWorth(transactionService.getNetWorth(user));
-        return dto;
+        return new UserDTO(
+                user.getName(),
+                user.getLastName(),
+                user.getEmailAddress(),
+                netWorth,
+                user.getRole().toString()
+        );
     }
 
 

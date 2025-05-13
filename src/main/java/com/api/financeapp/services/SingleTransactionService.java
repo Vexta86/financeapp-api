@@ -100,21 +100,8 @@ public class SingleTransactionService {
      * @return SingleTransactionDTO
      */
     public SingleTransactionDTO convertToDTO(SingleTransaction transaction){
-        // Convert the category entity to a category DTO
-        CategoryDTO categoryDTO = categoryService.convertToDTO(transaction.getCategory());
-
-        // Create a new SingleTransactionDTO
-        SingleTransactionDTO dto = new SingleTransactionDTO();
-
-        // Populate the DTO with data from the transaction entity
-        dto.setId(transaction.getId());
-        dto.setAmount(transaction.getAmount());
-        dto.setDescription(transaction.getDescription());
-        dto.setCategory(categoryDTO);
-        dto.setDate(transaction.getDate());
-
         // Return the populated DTO
-        return dto;
+        return new SingleTransactionDTO(transaction);
     }
 
     /**

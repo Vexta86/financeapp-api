@@ -1,15 +1,14 @@
 package com.api.financeapp.dtos;
 
-import lombok.Getter;
-import lombok.Setter;
+import com.api.financeapp.entities.User;
 
-@Getter
-@Setter
-public class UserDTO {
-    private String name;
-    private String lastName;
-    private String emailAddress;
-    private Double netWorth;
-    private String role;
+public record UserDTO(
+        String name,
+        String lastName,
+        String emailAddress,
+        Double netWorth,
+        String role
+) {
+
 
 }

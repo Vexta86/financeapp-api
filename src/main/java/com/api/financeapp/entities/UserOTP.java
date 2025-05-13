@@ -7,8 +7,7 @@ import lombok.Setter;
 
 import java.time.Instant;
 
-@Setter
-@Getter
+
 @Entity
 public class UserOTP {
     @EmbeddedId
@@ -18,4 +17,27 @@ public class UserOTP {
 
     private Instant otpTimestamp;
 
+    public Instant getOtpTimestamp() {
+        return otpTimestamp;
+    }
+
+    public String getOtp() {
+        return otp;
+    }
+
+    public UserOTPId getId() {
+        return id;
+    }
+
+    public void setId(UserOTPId id) {
+        this.id = id;
+    }
+
+    public void setOtp(String otp) {
+        this.otp = otp;
+    }
+
+    public void setOtpTimestamp(Instant otpTimestamp) {
+        this.otpTimestamp = otpTimestamp;
+    }
 }

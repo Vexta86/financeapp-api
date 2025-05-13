@@ -40,6 +40,62 @@ public class RecurringTransaction{
     @Enumerated(EnumType.STRING)
     private FrequencyUnit frequencyUnit;
 
+    public String getDescription() {
+        return description;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public Double getAmount() {
+        return amount;
+    }
+
+    public FrequencyUnit getFrequencyUnit() {
+        return frequencyUnit;
+    }
+
+    public Integer getFrequency() {
+        return frequency;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public void setAmount(Double amount) {
+        this.amount = amount;
+    }
+
+    public void setFrequency(Integer frequency) {
+        this.frequency = frequency;
+    }
+
+    public void setFrequencyUnit(FrequencyUnit frequencyUnit) {
+        this.frequencyUnit = frequencyUnit;
+    }
+
     private Float daysToMonths(Float days){
         return (float) Math.round((days / 29.6) * 100) / 100;
     }

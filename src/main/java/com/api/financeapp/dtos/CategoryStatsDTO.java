@@ -17,4 +17,21 @@ public class CategoryStatsDTO {
 
     public CategoryStatsDTO(){
     }
+
+    public CategoryDTO getCategory() {
+        return category;
+    }
+
+    public double getTotal() {
+        return total;
+    }
+
+    public void setCategory(CategoryDTO category) {
+        this.category = category;
+    }
+
+    public void setTotal(double total) {
+        this.total = total;
+    }
+
 }

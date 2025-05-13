@@ -42,23 +42,8 @@ public class RecurringTransactionService {
      * @return RecurringTransactionDTO
      */
     public RecurringTransactionDTO convertToDTO(RecurringTransaction transaction){
-        // Convert the transaction's category to a CategoryDTO
-        CategoryDTO categoryDTO = categoryService.convertToDTO(transaction.getCategory());
-
-        // Create a new RecurringTransactionDTO
-        RecurringTransactionDTO dto = new RecurringTransactionDTO();
-
-        // Populate the DTO with data from the transaction entity
-        dto.setId(transaction.getId());
-        dto.setAmount(transaction.getAmount());
-        dto.setDescription(transaction.getDescription());
-        dto.setCategory(categoryDTO);
-        dto.setFrequency(transaction.getFrequency());
-        dto.setFrequencyUnit(String.valueOf(transaction.getFrequencyUnit()));
-        dto.setMonthlyBudget(transaction.getMonthlyBudget());
-
         // Return the populated DTO
-        return dto;
+        return new RecurringTransactionDTO(transaction);
     }
 
     /**

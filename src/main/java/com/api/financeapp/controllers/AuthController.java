@@ -9,8 +9,12 @@ import com.api.financeapp.requests.LoginRequest;
 import com.api.financeapp.requests.VerifyCodeRequest;
 import com.api.financeapp.responses.AuthResponse;
 import com.api.financeapp.services.AuthService;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/auth")
@@ -23,9 +27,25 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request){
-        return ResponseEntity.ok(service.login(request));
+    public ResponseEntity<String> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+
+
+        // Create secure HTTP-only cookie
+        ResponseCookie cookie = ResponseCookie.from("jwt",  service.login(request))
+                .httpOnly(true)
+                .secure(true) // set to true in production (HTTPS)
+                .path("/")
+                .maxAge(Duration.ofHours(10)) // Match the JWT's expiration
+                .sameSite("Strict") // or "Lax" if needed for frontend
+                .build();
+
+        // Set cookie in response
+        response.addHeader("Set-Cookie", cookie.toString());
+
+        // Optionally, also return the token in body
+        return ResponseEntity.ok("You have succesfully logged in");
     }
+
     @PostMapping("/register")
     public ResponseEntity<Object > register(@RequestBody User request){
         User registeredUser = service.register(request);
