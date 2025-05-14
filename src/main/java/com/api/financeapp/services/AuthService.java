@@ -71,7 +71,7 @@ public class AuthService {
      * @param request The user login request.
      * @return The authentication response containing the JWT token.
      */
-    public String login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request) {
         // Authenticate the user using the authentication manager
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmailAddress(), request.getPassword()));
 
@@ -88,7 +88,7 @@ public class AuthService {
         }
 
         // Return the authentication response with the JWT token
-        return token;
+        return new AuthResponse(token);
     }
 
     /**
