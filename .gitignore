@@ -30,3 +30,4 @@ build/
 /.env
 
 /target
+/dump.sql

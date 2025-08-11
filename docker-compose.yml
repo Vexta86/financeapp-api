@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0
+    container_name: financeapp-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: financeapp
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: rootpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  app:
+    build: .
+    container_name: financeapp-app
+    restart: always
+    environment:
+      DB_URL: jdbc:mysql://db:3306/financeapp
+      DB_USERNAME: user
+      DB_PASSWORD: password
+      JWT_SECRET: QXJ5dktvUHdHWEpTZmJMS1NyT2hWb2VrNE9wTWFlR0RDcU5hUlV5YVJxbUZUZEpCTUdaQa4?
+      MAIL_HOST: smtp.hostinger.com
+      MAIL_USERNAME: noresponse@intfinity.co
+      MAIL_PASSWORD: s3Sklaag#G
+      MAIL_PORT: 587
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+volumes:
+  db_data:
