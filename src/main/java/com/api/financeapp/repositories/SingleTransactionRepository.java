@@ -59,7 +59,8 @@ public interface SingleTransactionRepository extends JpaRepository<SingleTransac
                                                                @Param("start") LocalDate start,
                                                                @Param("end") LocalDate end);
 
-    List<String> findDistinctCategoriesByUser(User user);
+    @Query("SELECT DISTINCT t.category FROM SingleTransaction t WHERE t.user = :user")
+    List<String> findDistinctCategoriesByUser(@Param("user") User user);
 
     Optional<SingleTransaction> findByIdAndUser(Long id, User user);
 
