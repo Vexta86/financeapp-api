@@ -134,12 +134,9 @@ public class SingleTransactionService {
             throw new IllegalArgumentException("Amount can't be 0");
         }
 
-        // Identifies the chosen category
-        Category selectedCategory = categoryService.selectedSingleCategory(transaction, currentUser);
-
         // Set the user and category on the transaction
         transaction.setUser(currentUser);
-        transaction.setCategory(selectedCategory);
+        transaction.setCategory(transaction.getCategory().trim().toLowerCase());
 
         // Save the transaction to the repository
         return transactionRepo.save(transaction);
@@ -197,19 +194,7 @@ public class SingleTransactionService {
 
         // Update the transaction's category if provided
         if (updated.getCategory() != null){
-
-
-            // Find or create the category
-            Category selectedCategory = categoryService.selectedSingleCategory(updated, currentUser);
-
-            // Check if the category type matches the transaction type
-            if (existingTransaction.getAmount() < 0 && selectedCategory.getType().equals(CategoryType.INCOME)){
-                throw new IllegalArgumentException("Category type doesn't match");
-            }
-            if (existingTransaction.getAmount() > 0 && selectedCategory.getType().equals(CategoryType.EXPENSE)){
-                throw new IllegalArgumentException("Category type doesn't match");
-            }
-            existingTransaction.setCategory(selectedCategory);
+            existingTransaction.setCategory(updated.getCategory().trim().toLowerCase());
         }
 
         // Update the transaction's date if provided

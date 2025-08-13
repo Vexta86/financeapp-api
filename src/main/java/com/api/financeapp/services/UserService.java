@@ -152,7 +152,7 @@ public class UserService {
 
         // Populate category-wise income statistics
         List<CategoryStatsDTO> categoryIncomeStats = singleTransactionRepository
-                .sumByCategoryAndUserBetween(user, CategoryType.INCOME, startDate, endDate)
+                .sumPositiveByCategoryAndUserBetween(user, startDate, endDate)
                 .stream()
                 .map(result -> {
                     // Map the query result to a CategoryStatsDTO
@@ -165,7 +165,7 @@ public class UserService {
 
         // Populate category-wise expense statistics
         List<CategoryStatsDTO> categoryExpenseStats = singleTransactionRepository
-                .sumByCategoryAndUserBetween(user, CategoryType.EXPENSE, startDate, endDate)
+                .sumNegativeByCategoryAndUserBetween(user, startDate, endDate)
                 .stream()
                 .map(result -> {
                     // Map the query result to a CategoryStatsDTO

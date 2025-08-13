@@ -35,70 +35,14 @@ public class CategoryController {
 
         try {
             User currentUser = authService.currentUser(request);
-            List<Category> categories = categoryService.getAllCategories(currentUser);
-            return ResponseEntity.ok().body(categoryService.convertToDTOS(categories));
+            List<String> categories = categoryService.getAllCategories(currentUser);
+            return ResponseEntity.ok().body(categories);
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Categories not found: " + e.getMessage());
         }
     }
 
-    @GetMapping("/{categoryId}")
-    public ResponseEntity<Object> getCategoryItems(@PathVariable Long categoryId, HttpServletRequest request){
-        try {
-            User currentUser = authService.currentUser(request);
-            List<SingleTransaction> transactions = categoryService.getSingles(categoryId, currentUser);
-            return ResponseEntity.status(HttpStatus.OK).body(singleTransactionService.convertToDTOS(transactions));
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Category not found: " + e.getMessage());
-        }
-    }
 
-    @GetMapping("/recurring/{categoryId}")
-    public ResponseEntity<Object> getCategoryRecurring(@PathVariable Long categoryId, HttpServletRequest request){
-        try {
-            User currentUser = authService.currentUser(request);
-            List<RecurringTransaction> transactions = categoryService.getRecurring(categoryId, currentUser);
-            return ResponseEntity.status(HttpStatus.OK).body(recurringTransactionService.convertToDTOS(transactions));
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Category not found: " + e.getMessage());
-        }
-    }
-
-    @DeleteMapping("/{categoryId}")
-    public ResponseEntity<Object> deleteCategory(@PathVariable Long categoryId, HttpServletRequest request){
-        try {
-            User currentUser = authService.currentUser(request);
-            categoryService.deleteCategory(categoryId, currentUser);
-            return ResponseEntity.status(HttpStatus.OK).body("Category deleted");
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Category could not be deleted: " + e.getMessage());
-        }
-    }
-
-    @PostMapping
-    public ResponseEntity<Object> newCategory(@RequestBody Category newCategory, HttpServletRequest request){
-
-        try{
-            User currentUser = authService.currentUser(request);
-            Category createdCategory = categoryService.createCategory(newCategory, currentUser);
-            return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.convertToDTO(createdCategory));
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Category could not be created: " + e.getMessage());
-        }
-
-    }
-
-    @PatchMapping("/{categoryId}")
-    public ResponseEntity<Object> updateCategory(@PathVariable Long categoryId, @RequestBody Category updated, HttpServletRequest request){
-        try {
-            User currentUser = authService.currentUser(request);
-            Category category = categoryService.updateCategory(categoryId, updated, currentUser);
-            return ResponseEntity.status(HttpStatus.OK).body(categoryService.convertToDTO(category));
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Category could not be updated: " + e.getMessage());
-
-        }
-    }
 
 
 }

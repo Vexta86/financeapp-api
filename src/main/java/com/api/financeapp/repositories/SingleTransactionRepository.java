@@ -21,7 +21,6 @@ public interface SingleTransactionRepository extends JpaRepository<SingleTransac
 
     boolean existsByIdAndUser(Long id, User user);
 
-    Optional<List<SingleTransaction>> findAllByUserAndCategory(User user, Category category);
 
     Optional<List<SingleTransaction>> findAllByUserAndDateBetweenOrderByDateDesc(User user, LocalDate start, LocalDate end);
 
@@ -46,17 +45,26 @@ public interface SingleTransactionRepository extends JpaRepository<SingleTransac
     )
     Double sumExpensesByUserBetween(@Param("user") User user, @Param("start") LocalDate start, @Param("end") LocalDate end);
 
+
+
     @Query("SELECT new com.api.financeapp.dtos.CategoryStatsDTO(t.category, SUM(t.amount)) " +
-            "FROM SingleTransaction t WHERE t.user = :user AND t.date BETWEEN :start AND :end AND t.category.type = :categoryType " +
+            "FROM SingleTransaction t WHERE t.user = :user AND t.date BETWEEN :start AND :end AND t.amount > 0 " +
             "GROUP BY t.category")
-    List<CategoryStatsDTO> sumByCategoryAndUserBetween(@Param("user") User user,
-                                                       @Param("categoryType") CategoryType categoryType,
-                                                       @Param("start") LocalDate start,
-                                                       @Param("end") LocalDate end);
+    List<CategoryStatsDTO> sumPositiveByCategoryAndUserBetween(@Param("user") User user,
+                                                               @Param("start") LocalDate start,
+                                                               @Param("end") LocalDate end);
+
+    @Query("SELECT new com.api.financeapp.dtos.CategoryStatsDTO(t.category, SUM(t.amount)) " +
+            "FROM SingleTransaction t WHERE t.user = :user AND t.date BETWEEN :start AND :end AND t.amount < 0 " +
+            "GROUP BY t.category")
+    List<CategoryStatsDTO> sumNegativeByCategoryAndUserBetween(@Param("user") User user,
+                                                               @Param("start") LocalDate start,
+                                                               @Param("end") LocalDate end);
+
+    List<String> findDistinctCategoriesByUser(User user);
 
     Optional<SingleTransaction> findByIdAndUser(Long id, User user);
 
-    void deleteAllByCategoryAndUser(Category category, User user);
 
     List<SingleTransaction> findAllByUserAndDateBetween(User user, LocalDate startDate, LocalDate endDate);
 

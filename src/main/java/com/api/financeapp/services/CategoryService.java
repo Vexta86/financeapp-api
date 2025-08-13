@@ -17,14 +17,12 @@ import java.util.Optional;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
-
     private final SingleTransactionRepository singleTransactionRepository;
-    private final RecurringTransactionRepository recurringTransactionRepository;
 
-    public CategoryService(CategoryRepository categoryRepository, SingleTransactionRepository singleTransactionRepository, RecurringTransactionRepository recurringTransactionRepository) {
+
+    public CategoryService(CategoryRepository categoryRepository, SingleTransactionRepository singleTransactionRepository) {
         this.categoryRepository = categoryRepository;
         this.singleTransactionRepository = singleTransactionRepository;
-        this.recurringTransactionRepository = recurringTransactionRepository;
     }
 
     /**
@@ -58,36 +56,9 @@ public class CategoryService {
      * @param user User entity
      * @return List of categories
      */
-    public List<Category> getAllCategories(User user) {
-        // Retrieve the list of categories from the repository
-        Optional<List<Category>> categories =  categoryRepository.findAllByUser(user);
-
+    public List<String> getAllCategories(User user) {
         // Return the list of categories, or an empty list if none are found
-        return categories.orElseGet(ArrayList::new);
-    }
-
-    /**
-     * Creates a new category for the given user.
-     *
-     * @param category Category entity to create
-     * @param user      User entity associated with the category
-     * @return Created category entity
-     */
-    public Category createCategory(Category category, User user) {
-
-        // Check if a category with the same name, type, and user already exists
-        boolean exists = categoryRepository.existsByNameAndTypeAndUser(category.getName(), category.getType(), user);
-
-        // If the category already exists, throw an exception
-        if (exists){
-            throw new IllegalArgumentException("Category already exists");
-        }
-
-        // Set the user on the category
-        category.setUser(user);
-
-        // Save the category to the repository
-        return categoryRepository.save(category);
+        return singleTransactionRepository.findDistinctCategoriesByUser(user);
     }
 
 
@@ -129,26 +100,6 @@ public class CategoryService {
 
 
     /**
-     * Selects a single transaction category, determining its type based on the transaction amount.
-     *
-     * @param transaction SingleTransaction entity
-     * @param currentUser  User entity associated with the transaction
-     * @return Selected Category entity
-     */
-    public Category selectedSingleCategory(SingleTransaction transaction, User currentUser){
-        // Determine the type of transaction (income or expense) based on the amount
-        CategoryType transactionType = (transaction.getAmount() < 0) ? CategoryType.EXPENSE : CategoryType.INCOME;
-
-        // Set the user and type on the transaction's category
-        transaction.getCategory().setUser(currentUser);
-        transaction.getCategory().setType(transactionType);
-
-        // Find or create the category
-        return findOrSaveCategory(transaction.getCategory());
-    }
-
-
-    /**
      * Selects a recurring transaction category, determining its type based on the transaction amount.
      *
      * @param transaction RecurringTransaction entity
@@ -167,117 +118,6 @@ public class CategoryService {
         return findOrSaveCategory(transaction.getCategory());
     }
 
-    /**
-     * Deletes a category and all its associated transactions.
-     *
-     * @param categoryId ID of the category to delete
-     * @param currentUser User entity associated with the category
-     */
-    @Transactional
-    public void deleteCategory(Long categoryId, User currentUser) {
-        // Find the category by its ID and user
-        Optional<Category> category = categoryRepository.findByIdAndUser(categoryId, currentUser);
 
-        // Check if the category exists
-        if (category.isEmpty()){
-            throw new IllegalArgumentException("Category not found");
-        }
 
-        // Delete all single transactions associated with the category and user
-        singleTransactionRepository.deleteAllByCategoryAndUser(category.get(), currentUser);
-
-        // Delete all recurring transactions associated with the category and user
-        recurringTransactionRepository.deleteAllByCategoryAndUser(category.get(), currentUser);
-
-        // Delete the category
-        categoryRepository.deleteById(categoryId);
-    }
-
-    /**
-     * Retrieves a list of single transactions associated with a category and user.
-     *
-     * @param categoryId ID of the category
-     * @param currentUser User entity associated with the category
-     * @return List of single transactions
-     */
-    public List<SingleTransaction> getSingles(Long categoryId, User currentUser) {
-        // Find the category by its ID and user
-        Optional<Category> selectedCategory = categoryRepository.findByIdAndUser(categoryId, currentUser);
-
-        // Check if the category exists
-        if (selectedCategory.isEmpty()){
-            throw new IllegalArgumentException("Category not found");
-        }
-
-        // Find all single transactions associated with the category and user
-        Optional<List<SingleTransaction>> transactions = singleTransactionRepository
-                .findAllByUserAndCategory(currentUser, selectedCategory.get());
-
-        // Return the list of transactions, or an empty list if none are found
-        return transactions.orElseGet(ArrayList::new);
-    }
-
-    /**
-     * Retrieves a list of recurring transactions associated with a category and user.
-     *
-     * @param categoryId ID of the category
-     * @param currentUser User entity associated with the category
-     * @return List of recurring transactions
-     */
-    public List<RecurringTransaction> getRecurring(Long categoryId, User currentUser) {
-        // Find the category by its ID and user
-        Optional<Category> selectedCategory = categoryRepository.findByIdAndUser(categoryId, currentUser);
-
-        // Check if the category exists
-        if (selectedCategory.isEmpty()){
-            throw new IllegalArgumentException("Category not found");
-        }
-
-        // Find all recurring transactions associated with the category and user
-        Optional<List<RecurringTransaction>> transactions = recurringTransactionRepository.findAllByUserAndCategory(currentUser, selectedCategory.get());
-
-        // Return the list of transactions, or an empty list if none are found
-        return transactions.orElseGet(ArrayList::new);
-    }
-
-    /**
-     * Updates an existing category with new data.
-     *
-     * @param categoryId ID of the category to update
-     * @param updated     Updated category data
-     * @param user        User entity associated with the category
-     * @return Updated category entity
-     */
-    public Category updateCategory(Long categoryId, Category updated, User user){
-        // Find the category by its ID and user
-        Optional<Category> optionalCategory = categoryRepository.findByIdAndUser(categoryId, user);
-
-        // Check if the category exists
-        if (optionalCategory.isEmpty()){
-            throw new IllegalArgumentException("Category not found");
-        }
-
-        // Get the existing category
-        Category category = optionalCategory.get();
-
-        // Update the category's name if provided
-        if (updated.getName() != null){
-            // Check if the new name is different from the existing name
-            boolean isDifferentName = !updated.getName().equals(category.getName());
-
-            // Check if a category with the same name, type, and user already exists
-            boolean exists = categoryRepository.existsByNameAndTypeAndUser(updated.getName(), category.getType(), user);
-
-            // If the category already exists and the name is different, throw an exception
-            if (exists && isDifferentName){
-                throw new IllegalArgumentException("Category already exists");
-            }
-
-            // Update the category's name
-            category.setName(updated.getName());
-        }
-
-        // Save the updated category to the repository
-        return categoryRepository.save(category);
-    }
 }

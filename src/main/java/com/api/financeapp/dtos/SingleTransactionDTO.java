@@ -13,7 +13,7 @@ public record SingleTransactionDTO(
         Long id,
         Double amount,
         String description,
-        CategoryDTO category,
+        String category,
         LocalDate date
 ) {
     public SingleTransactionDTO(SingleTransaction entity) {
@@ -21,7 +21,7 @@ public record SingleTransactionDTO(
                 entity.getId(),
                 entity.getAmount(),
                 entity.getDescription(),
-                new CategoryDTO(entity.getCategory()),
+                entity.getCategory(),
                 entity.getDate()
         );
     }
