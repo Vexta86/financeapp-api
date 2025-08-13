@@ -1,5 +1,6 @@
 package com.api.financeapp.controllers;
 
+import com.api.financeapp.dtos.SingleTransactionDTO;
 import com.api.financeapp.entities.*;
 import com.api.financeapp.services.AuthService;
 import com.api.financeapp.services.SingleTransactionService;
@@ -31,25 +32,20 @@ public class SingleTransactionController {
      * @return ResponseEntity with a list of single transactions
      */
     @GetMapping
-    public ResponseEntity<Object> getSingleTransactions(
+    public ResponseEntity<List<SingleTransactionDTO>> getSingleTransactions(
             HttpServletRequest request,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate
-    ){
-        try{
-            // Get the current user from the request
-            User currentUser = authService.currentUser(request);
+    ) throws Exception {
+        // Get the current user from the request
+        User currentUser = authService.currentUser(request);
 
-            // Retrieve the list of single transactions for the current user,
-            // filtered by the optional start and end dates
-            List<SingleTransaction> transactions = transactionService.getAllByStringDate(currentUser, startDate, endDate);
+        // Retrieve the list of single transactions for the current user,
+        // filtered by the optional start and end dates
+        List<SingleTransaction> transactions = transactionService.getAllByStringDate(currentUser, startDate, endDate);
 
-            // Convert the transactions to DTOs and return them in the response
-            return ResponseEntity.status(HttpStatus.OK).body(transactionService.convertToDTOS(transactions));
-        }catch (Exception e){
-            // Return an error response if an exception occurs
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Transactions not found: " + e.getMessage());
-        }
+        // Convert the transactions to DTOs and return them in the response
+        return ResponseEntity.status(HttpStatus.OK).body(transactionService.convertToDTOS(transactions));
     }
 
     /**
@@ -84,23 +80,18 @@ public class SingleTransactionController {
      * @return ResponseEntity with the created transaction
      */
     @PostMapping()
-    public ResponseEntity<Object> newTransaction(
+    public ResponseEntity<SingleTransactionDTO> newTransaction(
             @RequestBody SingleTransaction transaction,
-            HttpServletRequest request) {
+            HttpServletRequest request) throws Exception {
 
-        try {
-            // Get the current user from the request
-            User currentUser = authService.currentUser(request);
+        // Get the current user from the request
+        User currentUser = authService.currentUser(request);
 
-            // Create the new transaction
-            SingleTransaction createdTransaction = transactionService.createTransaction(transaction, currentUser);
+        // Create the new transaction
+        SingleTransaction createdTransaction = transactionService.createTransaction(transaction, currentUser);
 
-            // Return the created transaction in the response
-            return ResponseEntity.ok(transactionService.convertToDTO(createdTransaction));
-        } catch (Exception e) {
-            // Return an error response if an exception occurs
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Transaction could not be created: " + e.getMessage());
-        }
+        // Return the created transaction in the response
+        return ResponseEntity.ok(transactionService.convertToDTO(createdTransaction));
     }
 
     /**

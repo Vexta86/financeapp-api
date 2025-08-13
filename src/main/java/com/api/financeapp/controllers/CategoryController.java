@@ -30,15 +30,11 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<Object> getAllCategories(HttpServletRequest request){
+    public ResponseEntity<List<String>> getAllCategories(HttpServletRequest request) throws Exception {
 
-        try {
-            User currentUser = authService.currentUser(request);
-            List<String> categories = categoryService.getAllCategories(currentUser);
-            return ResponseEntity.ok().body(categories);
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Categories not found: " + e.getMessage());
-        }
+        User currentUser = authService.currentUser(request);
+        List<String> categories = categoryService.getAllCategories(currentUser);
+        return ResponseEntity.ok().body(categories);
     }
 
 
