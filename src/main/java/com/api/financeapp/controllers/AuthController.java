@@ -12,6 +12,9 @@ import com.api.financeapp.services.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -26,6 +29,12 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request){
         return ResponseEntity.ok(service.login(request));
     }
+
+    @PostMapping("/google-login")
+    public ResponseEntity<AuthResponse> googleLogin(@RequestParam String tokenId) throws GeneralSecurityException, IOException {
+        return ResponseEntity.ok(service.googleLogin(tokenId));
+    }
+
     @PostMapping("/register")
     public ResponseEntity<Object > register(@RequestBody User request){
         User registeredUser = service.register(request);

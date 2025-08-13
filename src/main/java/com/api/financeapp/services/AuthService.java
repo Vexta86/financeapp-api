@@ -1,11 +1,16 @@
 package com.api.financeapp.services;
 
+import org.springframework.beans.factory.annotation.Value;
 import com.api.financeapp.entities.*;
 import com.api.financeapp.repositories.UserOTPRepository;
 import com.api.financeapp.repositories.UserRepository;
 import com.api.financeapp.requests.LoginRequest;
 import com.api.financeapp.responses.AuthResponse;
 import com.api.financeapp.security.JwtService;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -17,7 +22,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Optional;
 
 
@@ -34,6 +43,9 @@ public class AuthService {
     private final UserRepository userRepository;
     private final UserOTPRepository otpRepository;
     private JavaMailSender javaMailSender;
+
+    @Value("${google.client.id}")
+    private String googleClientId;
 
 
     @Autowired
@@ -345,4 +357,38 @@ public class AuthService {
         userRepository.save(user);
     }
 
+    public AuthResponse googleLogin(String tokenId) throws GeneralSecurityException, IOException {
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                new NetHttpTransport(), new GsonFactory()
+        ).setAudience(Collections.singletonList(googleClientId))
+                .build();
+
+        GoogleIdToken idToken = verifier.verify(tokenId);
+        if (idToken == null) {
+            throw  new IllegalArgumentException("Invalid token");
+        }
+        GoogleIdToken.Payload payload = idToken.getPayload();
+
+        // Check if Google verifies the email
+        if (!Boolean.TRUE.equals(payload.getEmailVerified())) {
+            throw new IllegalArgumentException("Email not verified");
+        }
+
+        String email = payload.getEmail();
+
+        Optional<User> user = repo.findByEmailAddress(payload.getEmail());
+        if (user.isEmpty()) {
+            User newUser = new User();
+            newUser.setEmailAddress(email);
+            newUser.setName((String) payload.get("given_name"));
+            newUser.setLastName((String) payload.get("family_name"));
+            newUser.setActive(true); // Automatically activate the account
+            newUser.setRole(Role.USER); // Set default role
+            repo.save(newUser);
+            user = Optional.of(newUser);
+        }
+        String jwt = jwtService.generateToken(user.get());
+
+        return new AuthResponse(jwt);
+    }
 }
