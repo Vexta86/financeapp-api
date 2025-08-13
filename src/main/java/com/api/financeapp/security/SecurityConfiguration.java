@@ -35,7 +35,8 @@ public class SecurityConfiguration {
                 List.of(
                         "https://finance.intfinity.co",
                         "https://account.intfinity.co",
-                        "http://localhost:3000"
+                        "http://localhost:3000",
+                        null
                 )
         );
         corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
