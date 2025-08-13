@@ -1,8 +1,6 @@
 package com.api.financeapp.repositories;
 
 import com.api.financeapp.dtos.CategoryStatsDTO;
-import com.api.financeapp.entities.Category;
-import com.api.financeapp.entities.CategoryType;
 import com.api.financeapp.entities.SingleTransaction;
 import com.api.financeapp.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,6 +1,5 @@
 package com.api.financeapp.services;
 
-import com.api.financeapp.dtos.CategoryDTO;
 import com.api.financeapp.dtos.RecurringTransactionDTO;
 import com.api.financeapp.entities.*;
 import com.api.financeapp.repositories.RecurringTransactionRepository;
@@ -79,12 +78,9 @@ public class RecurringTransactionService {
             throw new IllegalArgumentException("Frequency can't be less than 0");
         }
 
-        // Identifies the chosen category
-        Category selectedCategory = categoryService.selectedRecurringCategory(transaction, currentUser);
-
         // Set the user and category on the transaction
         transaction.setUser(currentUser);
-        transaction.setCategory(selectedCategory);
+        transaction.setCategory(transaction.getCategory().trim().toLowerCase());
 
         // Save the transaction to the repository
         return transactionRepo.save(transaction);
@@ -133,34 +129,18 @@ public class RecurringTransactionService {
         if (updated.getDescription() != null){
             existingTransaction.setDescription(updated.getDescription());
         }
-
-        // Update the transaction's amount if provided and non-zero
-        if (updated.getAmount() != 0){
-            existingTransaction.setAmount(updated.getAmount());
-        }
-
-        // Update the transaction's category if provided
-        if (updated.getCategory() != null){
-
-            // Identifies the chosen category
-            Category selectedCategory = categoryService.selectedRecurringCategory(updated, currentUser);
-
-            // Check if the category type matches the transaction type
-            if (existingTransaction.getAmount() > 0 && selectedCategory.getType().equals(CategoryType.EXPENSE)){
-                throw new IllegalArgumentException("Category type doesn't match");
-            }
-            if (existingTransaction.getAmount() < 0 && selectedCategory.getType().equals(CategoryType.INCOME)){
-                throw new IllegalArgumentException("Category type doesn't match");
-            }
-            existingTransaction.setCategory(selectedCategory);
-
-        }
-
         // Update the frequency if provided
         if (updated.getFrequency() > 0){
             existingTransaction.setFrequency(updated.getFrequency());
         }
-
+        // Update the transaction's amount if provided and non-zero
+        if (updated.getAmount() != 0){
+            existingTransaction.setAmount(updated.getAmount());
+        }
+        // Update the transaction's category if provided
+        if (updated.getCategory() != null){
+            existingTransaction.setCategory(updated.getCategory().trim().toLowerCase());
+        }
         // Update the frequency unit if provided
         if (updated.getFrequencyUnit() != null){
             existingTransaction.setFrequencyUnit(updated.getFrequencyUnit());

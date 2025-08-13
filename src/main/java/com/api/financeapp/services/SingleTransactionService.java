@@ -1,6 +1,5 @@
 package com.api.financeapp.services;
 
-import com.api.financeapp.dtos.CategoryDTO;
 import com.api.financeapp.dtos.SingleTransactionDTO;
 import com.api.financeapp.entities.*;
 import com.api.financeapp.repositories.SingleTransactionRepository;

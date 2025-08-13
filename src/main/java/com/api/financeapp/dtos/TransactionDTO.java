@@ -9,8 +9,5 @@ public class TransactionDTO {
     private Long id;
     private Double amount;
     private String description;
-
-    private CategoryDTO category;
-
-
+    private String category;
 }

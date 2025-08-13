@@ -1,6 +1,5 @@
 package com.api.financeapp.repositories;
 
-import com.api.financeapp.entities.Category;
 import com.api.financeapp.entities.RecurringTransaction;
 
 import com.api.financeapp.entities.User;
@@ -16,8 +15,5 @@ public interface RecurringTransactionRepository extends JpaRepository<RecurringT
     Optional<List<RecurringTransaction>> findAllByUser(User user);
     boolean existsByIdAndUser(Long id, User user);
     Optional<RecurringTransaction> findByIdAndUser(Long id, User user);
-    void deleteAllByCategoryAndUser(Category category, User user);
 
-
-    Optional<List<RecurringTransaction>> findAllByUserAndCategory(User user, Category category);
 }

@@ -24,9 +24,7 @@ public class RecurringTransaction{
     private String description;
 
     @Setter
-    @ManyToOne
-    @JoinColumn()
-    private Category category;
+    private String category;
 
     @Setter
     @ManyToOne
@@ -52,7 +50,7 @@ public class RecurringTransaction{
         return id;
     }
 
-    public Category getCategory() {
+    public String getCategory() {
         return category;
     }
 
@@ -68,7 +66,7 @@ public class RecurringTransaction{
         return frequency;
     }
 
-    public void setCategory(Category category) {
+    public void setCategory(String category) {
         this.category = category;
     }
 

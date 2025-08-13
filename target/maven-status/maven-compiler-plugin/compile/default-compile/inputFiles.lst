@@ -7,7 +7,6 @@ C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\controllers\SharedExpenseController.java
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\controllers\SingleTransactionController.java
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\controllers\UserController.java
-C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\dtos\CategoryDTO.java
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\dtos\CategoryStatsDTO.java
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\dtos\ErrorDTO.java
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\dtos\ExpenseGroupDTO.java
@@ -20,7 +19,6 @@ C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\dtos\StatsDTO.java
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\dtos\TransactionDTO.java
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\dtos\UserDTO.java
-C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\entities\Category.java
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\entities\CategoryType.java
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\entities\ExpenseGroup.java
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\entities\FrequencyUnit.java
@@ -34,7 +32,6 @@ C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\entities\UserOTP.java
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\entities\UserOTPId.java
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\FinanceAppApplication.java
-C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\repositories\CategoryRepository.java
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\repositories\ExpenseGroupRepository.java
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\repositories\GroupMemberRepository.java
 C:\Users\User\Documents\Projects\financeapp-api\src\main\java\com\api\financeapp\repositories\RecurringTransactionRepository.java

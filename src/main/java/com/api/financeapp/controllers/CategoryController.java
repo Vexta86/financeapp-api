@@ -1,6 +1,5 @@
 package com.api.financeapp.controllers;
 
-import com.api.financeapp.entities.Category;
 import com.api.financeapp.entities.RecurringTransaction;
 import com.api.financeapp.entities.SingleTransaction;
 import com.api.financeapp.entities.User;

@@ -6,7 +6,7 @@ public record RecurringTransactionDTO(
         Long id,
         Double amount,
         String description,
-        CategoryDTO category,
+        String category,
         Integer frequency,
         FrequencyUnit frequencyUnit,
         Double monthlyBudget
@@ -16,7 +16,7 @@ public record RecurringTransactionDTO(
                 entity.getId(),
                 entity.getAmount(),
                 entity.getDescription(),
-                new CategoryDTO(entity.getCategory()),
+                entity.getCategory(),
                 entity.getFrequency(),
                 entity.getFrequencyUnit(),
                 entity.getMonthlyBudget()
