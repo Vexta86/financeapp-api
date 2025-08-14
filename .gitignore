@@ -31,3 +31,12 @@ build/
 
 /target
 /dump.sql
+
+
+/build/
+.gradle/
+.idea/
+out/
+*.log
+.DS_Store
+Thumbs.db
